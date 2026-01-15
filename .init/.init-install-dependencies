@@ -1,0 +1,4 @@
+{
+    "command": "npm install",
+    "working_directory": "/home/kavia/workspace/code-generation/mobile-service-website-42344/mobile_service_frontend"
+}
