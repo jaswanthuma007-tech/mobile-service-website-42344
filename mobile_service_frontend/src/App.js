@@ -44,7 +44,10 @@ async function fetchJson(path, init) {
 }
 
 function normalizePhone(phone) {
-  return String(phone || "").replace(/[^\d+]/g, "");
+  const p = String(phone || "").trim();
+  if (!p) return "";
+  if (p.startsWith("+")) return "+" + p.slice(1).replace(/\D/g, "");
+  return p.replace(/\D/g, "");
 }
 
 function isValidPincode(pincode) {
@@ -53,6 +56,11 @@ function isValidPincode(pincode) {
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
+}
+
+function formatStatus(status) {
+  const s = String(status || "").trim();
+  return s || "Pending";
 }
 
 // PUBLIC_INTERFACE
@@ -86,8 +94,15 @@ function App() {
 
   const [sliderIndex, setSliderIndex] = useState(0);
 
-  const [adminKey, setAdminKey] = useState("");
-  const [adminStatus, setAdminStatus] = useState({ state: "idle", message: "" }); // idle | loading | error
+  // Tracking state
+  const [trackMode, setTrackMode] = useState("booking_id"); // booking_id | phone
+  const [trackInput, setTrackInput] = useState("");
+  const [trackState, setTrackState] = useState({ state: "idle", message: "", booking: null }); // idle | loading | error | done
+
+  // Admin state
+  const [adminCreds, setAdminCreds] = useState({ username: "", password: "" });
+  const [adminToken, setAdminToken] = useState("");
+  const [adminStatus, setAdminStatus] = useState({ state: "idle", message: "" }); // idle | loading | error | success
   const [adminBookings, setAdminBookings] = useState([]);
 
   const homeRef = useRef(null);
@@ -126,7 +141,7 @@ function App() {
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Slider auto-advance (simple smartphone image placeholders using gradients + "device" frame).
+  // Slider auto-advance.
   useEffect(() => {
     const t = window.setInterval(() => setSliderIndex((i) => (i + 1) % 3), 4500);
     return () => window.clearInterval(t);
@@ -259,7 +274,10 @@ function App() {
       const resp = await fetchJson("/api/bookings", { method: "POST", body: JSON.stringify(payload) });
       setBookingStatus({
         state: "success",
-        message: resp?.message || "Booking received! Our team will contact you shortly.",
+        message:
+          resp?.id != null
+            ? `Booking received! Your Booking ID is #${resp.id}.`
+            : resp?.message || "Booking received! Our team will contact you shortly.",
       });
       setBooking({ name: "", phone: "", pincode: "" });
       setBookingTouched({});
@@ -272,27 +290,14 @@ function App() {
     }
   };
 
-  const loadAdminBookings = async () => {
-    setAdminStatus({ state: "loading", message: "" });
-    try {
-      const headers = adminKey ? { "X-Admin-Key": adminKey } : {};
-      const resp = await fetchJson("/api/admin/bookings?limit=200", { headers });
-      setAdminBookings(Array.isArray(resp?.bookings) ? resp.bookings : []);
-      setAdminStatus({ state: "idle", message: "" });
-    } catch (err) {
-      setAdminBookings([]);
-      setAdminStatus({ state: "error", message: err?.message || "Unable to load bookings." });
-    }
-  };
-
   const servicesFallback = useMemo(
     () => [
       { title: "Display Repair", description: "Cracked or flickering screens replaced with warranty support.", icon: "📱" },
       { title: "Battery", description: "Fix battery drain and swelling issues with reliable cells.", icon: "🔋" },
-      { title: "Charging Port", description: "Port cleaning or replacement for loose/failed charging.", icon: "🔌" },
-      { title: "Software", description: "Boot loops, updates, backups, and performance troubleshooting.", icon: "🧠" },
       { title: "Camera", description: "Blurry lens, focus issues, and camera module replacement.", icon: "📷" },
+      { title: "Charging Port", description: "Port cleaning or replacement for loose/failed charging.", icon: "🔌" },
       { title: "Speaker", description: "Low sound, distortion, and mic/speaker diagnostics.", icon: "🔊" },
+      { title: "Software", description: "Boot loops, updates, backups, and performance troubleshooting.", icon: "🧠" },
     ],
     [],
   );
@@ -301,7 +306,7 @@ function App() {
 
   const sliderSlides = useMemo(
     () => [
-      { id: "s1", accent: "pink", heading: "6 Months Warranty on iPhone Displays", sub: "Premium quality parts & expert installation" },
+      { id: "s1", accent: "pink", heading: "6 Months Warranty on Displays", sub: "Premium quality parts & expert installation" },
       { id: "s2", accent: "violet", heading: "Fast Doorstep Repairs", sub: "Book in seconds, we’ll do the rest" },
       { id: "s3", accent: "cyan", heading: "Trusted by 1,25,000+ Customers", sub: "Transparent pricing & real-time updates" },
     ],
@@ -310,10 +315,103 @@ function App() {
 
   const currentSlide = sliderSlides[clamp(sliderIndex, 0, sliderSlides.length - 1)];
 
+  const submitTracking = async (e) => {
+    e.preventDefault();
+    const raw = String(trackInput || "").trim();
+    if (!raw) {
+      setTrackState({ state: "error", message: "Please enter a Booking ID or phone number.", booking: null });
+      return;
+    }
+
+    setTrackState({ state: "loading", message: "Checking status…", booking: null });
+    try {
+      const qs =
+        trackMode === "booking_id"
+          ? `booking_id=${encodeURIComponent(raw)}`
+          : `phone=${encodeURIComponent(normalizePhone(raw))}`;
+      const resp = await fetchJson(`/api/track?${qs}`);
+      setTrackState({
+        state: "done",
+        message: resp?.message || (resp?.found ? "Booking found." : "No booking found."),
+        booking: resp?.booking || null,
+      });
+    } catch (err) {
+      setTrackState({ state: "error", message: err?.message || "Unable to track status right now.", booking: null });
+    }
+  };
+
+  const adminLogin = async (e) => {
+    e.preventDefault();
+    setAdminStatus({ state: "loading", message: "" });
+    try {
+      const payload = {
+        username: String(adminCreds.username || "").trim(),
+        password: String(adminCreds.password || "").trim(),
+      };
+      const resp = await fetchJson("/api/admin/login", { method: "POST", body: JSON.stringify(payload) });
+      setAdminToken(resp?.token || "");
+      setAdminStatus({ state: "success", message: "Logged in." });
+    } catch (err) {
+      setAdminToken("");
+      setAdminBookings([]);
+      setAdminStatus({ state: "error", message: err?.message || "Login failed." });
+    }
+  };
+
+  const loadAdminBookings = async () => {
+    if (!adminToken) {
+      setAdminStatus({ state: "error", message: "Please login first." });
+      return;
+    }
+    setAdminStatus({ state: "loading", message: "" });
+    try {
+      const resp = await fetchJson("/api/admin/bookings?limit=200", {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      setAdminBookings(Array.isArray(resp?.bookings) ? resp.bookings : []);
+      setAdminStatus({ state: "success", message: "" });
+    } catch (err) {
+      setAdminBookings([]);
+      setAdminStatus({ state: "error", message: err?.message || "Unable to load bookings." });
+    }
+  };
+
+  const updateAdminBookingStatus = async (bookingId, status, notes) => {
+    if (!adminToken) return;
+    try {
+      const resp = await fetchJson(`/api/admin/bookings/${bookingId}/status`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${adminToken}` },
+        body: JSON.stringify({ status, notes }),
+      });
+      const updated = resp?.booking;
+      if (!updated) return;
+
+      setAdminBookings((prev) => prev.map((b) => (b.id === bookingId ? updated : b)));
+    } catch (err) {
+      setAdminStatus({ state: "error", message: err?.message || "Failed to update status." });
+    }
+  };
+
+  const whatsappHref = useMemo(() => {
+    // In production, this should be configured. Here we use the contact number from earlier template.
+    const phoneDigits = "15551234567";
+    const message = encodeURIComponent("Hi! I want to book a mobile repair. Please help.");
+    return `https://wa.me/${phoneDigits}?text=${message}`;
+  }, []);
+
   return (
     <div className="App">
       <a className="SkipLink" href="#main">
         Skip to content
+      </a>
+
+      {/* Floating action buttons */}
+      <a className="Fab FabWhatsApp" href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp">
+        WA
+      </a>
+      <a className="Fab FabCall" href="tel:+15551234567" aria-label="Call now">
+        Call
       </a>
 
       {/* TOP HEADER (dark) */}
@@ -357,13 +455,7 @@ function App() {
       {/* NAVBAR */}
       <header className="Header">
         <div className="Header-inner Container">
-          <button
-            type="button"
-            className="Brand"
-            role="banner"
-            onClick={() => scrollToSection("home")}
-            aria-label="Go to home"
-          >
+          <button type="button" className="Brand" role="banner" onClick={() => scrollToSection("home")} aria-label="Go to home">
             <div className="Brand-mark" aria-hidden="true">
               MS
             </div>
@@ -476,9 +568,7 @@ function App() {
                         placeholder="Your name"
                         autoComplete="name"
                       />
-                      {bookingTouched.name && bookingErrors.name ? (
-                        <span className="FieldError">{bookingErrors.name}</span>
-                      ) : null}
+                      {bookingTouched.name && bookingErrors.name ? <span className="FieldError">{bookingErrors.name}</span> : null}
                     </label>
 
                     <label className="Field">
@@ -492,9 +582,7 @@ function App() {
                         autoComplete="tel"
                         inputMode="tel"
                       />
-                      {bookingTouched.phone && bookingErrors.phone ? (
-                        <span className="FieldError">{bookingErrors.phone}</span>
-                      ) : null}
+                      {bookingTouched.phone && bookingErrors.phone ? <span className="FieldError">{bookingErrors.phone}</span> : null}
                     </label>
 
                     <div className="Field FieldSpan2">
@@ -503,9 +591,7 @@ function App() {
                           <span className="FieldLabel">Pincode</span>
                           <input
                             className={`Input ${
-                              bookingTouched.pincode && (bookingErrors.pincode || pincodeStatus.valid === false)
-                                ? "InputError"
-                                : ""
+                              bookingTouched.pincode && (bookingErrors.pincode || pincodeStatus.valid === false) ? "InputError" : ""
                             }`}
                             value={booking.pincode}
                             onChange={(e) => onBookingChange("pincode", e.target.value)}
@@ -522,14 +608,10 @@ function App() {
                         </button>
                       </div>
 
-                      {bookingTouched.pincode && bookingErrors.pincode ? (
-                        <span className="FieldError">{bookingErrors.pincode}</span>
-                      ) : null}
+                      {bookingTouched.pincode && bookingErrors.pincode ? <span className="FieldError">{bookingErrors.pincode}</span> : null}
 
                       {pincodeStatus.state === "done" ? (
-                        <div className={`PincodeMsg ${pincodeStatus.valid ? "is-ok" : "is-bad"}`}>
-                          {pincodeStatus.message}
-                        </div>
+                        <div className={`PincodeMsg ${pincodeStatus.valid ? "is-ok" : "is-bad"}`}>{pincodeStatus.message}</div>
                       ) : null}
                     </div>
                   </div>
@@ -541,11 +623,7 @@ function App() {
 
                     <div
                       className={`FormStatus ${
-                        bookingStatus.state === "success"
-                          ? "is-success"
-                          : bookingStatus.state === "error"
-                            ? "is-error"
-                            : ""
+                        bookingStatus.state === "success" ? "is-success" : bookingStatus.state === "error" ? "is-error" : ""
                       }`}
                       role={bookingStatus.state === "error" ? "alert" : "status"}
                       aria-live="polite"
@@ -566,13 +644,84 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Track Status</h2>
-              <p className="Subhead">Coming soon: Track your repair progress with your booking ID.</p>
+              <p className="Subhead">Enter your Booking ID or Phone number to see repair progress.</p>
             </div>
 
-            <div className="PlaceholderCard LiftDark">
-              <div className="PlaceholderTitle">Feature in progress</div>
-              <div className="PlaceholderText">
-                We can show real-time updates once tracking is enabled in the backend.
+            <div className="TrackCard">
+              <form className="TrackForm" onSubmit={submitTracking}>
+                <div className="TrackTabs" role="tablist" aria-label="Track mode">
+                  <button
+                    type="button"
+                    className={`TrackTab ${trackMode === "booking_id" ? "is-active" : ""}`}
+                    onClick={() => setTrackMode("booking_id")}
+                  >
+                    Booking ID
+                  </button>
+                  <button
+                    type="button"
+                    className={`TrackTab ${trackMode === "phone" ? "is-active" : ""}`}
+                    onClick={() => setTrackMode("phone")}
+                  >
+                    Phone
+                  </button>
+                </div>
+
+                <div className="TrackRow">
+                  <input
+                    className="Input"
+                    value={trackInput}
+                    onChange={(e) => setTrackInput(e.target.value)}
+                    placeholder={trackMode === "booking_id" ? "Enter booking id (e.g. 123)" : "Enter phone number"}
+                    inputMode={trackMode === "booking_id" ? "numeric" : "tel"}
+                  />
+                  <button type="submit" className="Button Primary PinkPrimary">
+                    {trackState.state === "loading" ? "Checking…" : "Track"}
+                  </button>
+                </div>
+
+                <div
+                  className={`TrackMsg ${trackState.state === "error" ? "is-error" : trackState.state === "done" ? "is-done" : ""}`}
+                  role={trackState.state === "error" ? "alert" : "status"}
+                  aria-live="polite"
+                >
+                  {trackState.message}
+                </div>
+
+                {trackState.booking ? (
+                  <div className="TrackResult">
+                    <div className="TrackBadgeRow">
+                      <div className={`StatusBadge Status-${formatStatus(trackState.booking.status).replace(/\s/g, "")}`}>
+                        {formatStatus(trackState.booking.status)}
+                      </div>
+                      <div className="TrackMeta">
+                        Booking #{trackState.booking.id} • {trackState.booking.created_at}
+                      </div>
+                    </div>
+
+                    <div className="TrackGrid">
+                      <div className="TrackItem">
+                        <div className="TrackLabel">Name</div>
+                        <div className="TrackValue">{trackState.booking.name}</div>
+                      </div>
+                      <div className="TrackItem">
+                        <div className="TrackLabel">Phone</div>
+                        <div className="TrackValue">{trackState.booking.phone}</div>
+                      </div>
+                      <div className="TrackItem">
+                        <div className="TrackLabel">Pincode</div>
+                        <div className="TrackValue">{trackState.booking.pincode}</div>
+                      </div>
+                      <div className="TrackItem TrackSpan2">
+                        <div className="TrackLabel">Notes</div>
+                        <div className="TrackValue">{trackState.booking.notes || "—"}</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </form>
+
+              <div className="FormHint">
+                Tip: After booking, your Booking ID is shown in the success message. Admin updates status in the Admin Panel.
               </div>
             </div>
           </div>
@@ -583,7 +732,7 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Services</h2>
-              <p className="Subhead">Display Repair, Battery, Charging Port, Software, Camera, Speaker.</p>
+              <p className="Subhead">Display, Battery, Camera, Charging Port, Speaker, Software.</p>
             </div>
 
             {loadingServices ? (
@@ -598,7 +747,7 @@ function App() {
                   <article key={s.id || s.title} className="Card Lift ServiceCard">
                     <div className="CardTop">
                       <div className="IconCircle" aria-hidden="true">
-                        {s.icon || "🔧"}
+                        {s.icon || "🛠"}
                       </div>
                       <div className="CardTitle">{s.title}</div>
                     </div>
@@ -616,11 +765,34 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Store Locator</h2>
-              <p className="Subhead">Find your nearest center (placeholder section).</p>
+              <p className="Subhead">Find nearby service centers (map + city list).</p>
             </div>
-            <div className="PlaceholderCard Lift">
-              <div className="PlaceholderTitle">Add locations</div>
-              <div className="PlaceholderText">This can be wired to a locations API in the backend.</div>
+
+            <div className="StoreGrid">
+              <div className="StoreList Card Lift">
+                <div className="CardTitle">Cities</div>
+                <div className="CardText">Select a city (demo list):</div>
+                <div className="CityList">
+                  {["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"].map((c) => (
+                    <div key={c} className="CityChip">
+                      {c}
+                    </div>
+                  ))}
+                </div>
+                <div className="FormHint">Map is embedded for layout parity; wire to real locations API as needed.</div>
+              </div>
+
+              <div className="StoreMap Card Lift">
+                <div className="CardTitle">Map</div>
+                <div className="MapWrap" aria-label="Map">
+                  <iframe
+                    title="Store locator map"
+                    src="https://www.google.com/maps?q=New%20York&output=embed"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -630,11 +802,11 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Brands</h2>
-              <p className="Subhead">We service popular brands (placeholder chips).</p>
+              <p className="Subhead">Apple, Samsung, Vivo, Oppo, Xiaomi and more.</p>
             </div>
 
             <div className="ChipRow" aria-label="Brands">
-              {["Apple", "Samsung", "OnePlus", "Xiaomi", "Google", "Vivo", "Oppo"].map((b) => (
+              {["Apple", "Samsung", "Vivo", "Oppo", "Xiaomi", "OnePlus", "Realme", "Google"].map((b) => (
                 <div key={b} className="Chip">
                   {b}
                 </div>
@@ -655,28 +827,23 @@ function App() {
               <div className="Panel DarkPanel">
                 <div className="PanelTitle">Why we’re different</div>
                 <p className="PanelText">
-                  We focus on fast diagnosis, high-quality parts, and clear communication—so you always know what’s
-                  happening and why.
+                  We focus on fast diagnosis, high-quality parts, and clear communication—so you always know what’s happening and why.
                 </p>
                 <ul className="Bullets">
-                  {["6-month warranty on iPhone displays", "Doorstep pickup & delivery options", "Trusted technicians"].map(
-                    (b) => (
-                      <li key={b} className="Bullet">
-                        <span className="Check CheckDark" aria-hidden="true">
-                          ✓
-                        </span>
-                        {b}
-                      </li>
-                    ),
-                  )}
+                  {["6-month warranty on displays", "Doorstep pickup & delivery options", "Trusted technicians"].map((b) => (
+                    <li key={b} className="Bullet">
+                      <span className="Check CheckDark" aria-hidden="true">
+                        ✓
+                      </span>
+                      {b}
+                    </li>
+                  ))}
                 </ul>
               </div>
 
               <div className="Panel AccentPink">
                 <div className="PanelTitle">Ready to book?</div>
-                <p className="PanelText">
-                  Use the booking form above to get started. We validate pincodes and respond quickly.
-                </p>
+                <p className="PanelText">Use the booking form above to get started. We validate pincodes and respond quickly.</p>
                 <button type="button" className="Button Primary PinkPrimary" onClick={() => scrollToSection("home")}>
                   Book Now
                 </button>
@@ -690,27 +857,57 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Contact</h2>
-              <p className="Subhead">Call, email, or book online. We’re here to help.</p>
+              <p className="Subhead">Contact us or send a request. We’re here to help.</p>
             </div>
 
-            <div className="ContactGrid">
+            <div className="ContactGrid2">
               <div className="Card Lift">
-                <div className="CardTitle">Working Hours</div>
-                <div className="CardText">Mon–Sat: 9am–7pm</div>
+                <div className="CardTitle">Contact Us</div>
+                <div className="CardText">Fill the form and we’ll get back to you.</div>
+
+                <form
+                  className="ContactForm"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    // This repo already has /api/submit_form support; keep the UI minimal here.
+                    // A future enhancement: wire full form submission with fields requested.
+                    alert("Thanks! Please use the booking form above for fastest response.");
+                  }}
+                >
+                  <div className="FieldGrid">
+                    <label className="Field">
+                      <span className="FieldLabel">Name</span>
+                      <input className="Input" placeholder="Your name" />
+                    </label>
+                    <label className="Field">
+                      <span className="FieldLabel">Phone</span>
+                      <input className="Input" placeholder="Phone number" inputMode="tel" />
+                    </label>
+                    <label className="Field FieldSpan2">
+                      <span className="FieldLabel">Message</span>
+                      <textarea className="Input TextArea" placeholder="How can we help?" rows={4} />
+                    </label>
+                  </div>
+                  <button type="submit" className="Button Primary PinkPrimary">
+                    Send
+                  </button>
+                </form>
               </div>
+
               <div className="Card Lift">
-                <div className="CardTitle">Phone</div>
-                <div className="CardText">+1 (555) 123-4567</div>
-                <a className="InlineLink" href="tel:+15551234567">
-                  Call now
-                </a>
-              </div>
-              <div className="Card Lift">
-                <div className="CardTitle">Email</div>
-                <div className="CardText">support@example.com</div>
-                <a className="InlineLink" href="mailto:support@example.com">
-                  Email us
-                </a>
+                <div className="CardTitle">Google Map</div>
+                <div className="MapWrap" aria-label="Google Map">
+                  <iframe
+                    title="Contact map"
+                    src="https://www.google.com/maps?q=New%20York&output=embed"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+                <div className="FormHint">
+                  Phone: <a className="InlineLink" href="tel:+15551234567">+1 (555) 123-4567</a> • Email:{" "}
+                  <a className="InlineLink" href="mailto:support@example.com">support@example.com</a>
+                </div>
               </div>
             </div>
           </div>
@@ -721,15 +918,13 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Blogs</h2>
-              <p className="Subhead">Tips & guides (placeholder section).</p>
+              <p className="Subhead">Tips & guides (placeholder content).</p>
             </div>
             <div className="Grid">
               {[1, 2, 3].map((n) => (
                 <article key={n} className="Card Lift">
                   <div className="CardTitle">Repair tip #{n}</div>
-                  <div className="CardText">
-                    Learn how to protect your device and spot issues early. (This is placeholder content.)
-                  </div>
+                  <div className="CardText">Learn how to protect your device and spot issues early. (Placeholder.)</div>
                 </article>
               ))}
             </div>
@@ -741,13 +936,11 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Login / Signup</h2>
-              <p className="Subhead">Placeholder section (auth not implemented in this project).</p>
+              <p className="Subhead">Customer auth is a placeholder for this project scope.</p>
             </div>
             <div className="PlaceholderCard Lift">
               <div className="PlaceholderTitle">Authentication</div>
-              <div className="PlaceholderText">
-                If you want real login/signup, we can integrate Supabase Auth or a backend auth system.
-              </div>
+              <div className="PlaceholderText">If needed, integrate Supabase Auth or backend auth for customers.</div>
             </div>
           </div>
         </section>
@@ -757,64 +950,94 @@ function App() {
           <div className="Container">
             <div className="SectionHeader">
               <h2 className="H2">Admin Panel</h2>
-              <p className="Subhead">View customer booking submissions (simple table).</p>
+              <p className="Subhead">Login, view bookings, and update repair status.</p>
             </div>
 
             <div className="AdminCard">
-              <div className="AdminBar">
-                <label className="AdminKeyField">
-                  <span className="AdminKeyLabel">X-Admin-Key (optional)</span>
-                  <input
-                    className="Input"
-                    value={adminKey}
-                    onChange={(e) => setAdminKey(e.target.value)}
-                    placeholder="Enter admin key if enabled"
-                    autoComplete="off"
-                  />
-                </label>
-                <button type="button" className="Button Secondary" onClick={loadAdminBookings}>
-                  {adminStatus.state === "loading" ? "Loading…" : "Load Bookings"}
-                </button>
-              </div>
+              <div className="AdminSplit">
+                <form className="AdminLogin" onSubmit={adminLogin}>
+                  <div className="AdminLoginTitle">Admin Login</div>
+                  <label className="Field">
+                    <span className="FieldLabel DarkLabel">Username</span>
+                    <input
+                      className="Input"
+                      value={adminCreds.username}
+                      onChange={(e) => setAdminCreds((p) => ({ ...p, username: e.target.value }))}
+                      placeholder="admin"
+                      autoComplete="username"
+                    />
+                  </label>
+                  <label className="Field">
+                    <span className="FieldLabel DarkLabel">Password</span>
+                    <input
+                      className="Input"
+                      type="password"
+                      value={adminCreds.password}
+                      onChange={(e) => setAdminCreds((p) => ({ ...p, password: e.target.value }))}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                    />
+                  </label>
 
-              {adminStatus.state === "error" ? <div className="AdminError">{adminStatus.message}</div> : null}
+                  <button type="submit" className="Button Primary PinkPrimary">
+                    {adminStatus.state === "loading" ? "Logging in…" : "Login"}
+                  </button>
 
-              <div className="AdminTableWrap">
-                <table className="AdminTable">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Phone</th>
-                      <th>Pincode</th>
-                      <th>Created</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adminBookings.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="AdminEmpty">
-                          No bookings loaded yet.
-                        </td>
-                      </tr>
-                    ) : (
-                      adminBookings.map((b) => (
-                        <tr key={b.id}>
-                          <td>{b.id}</td>
-                          <td>{b.name}</td>
-                          <td>{b.phone}</td>
-                          <td>{b.pincode}</td>
-                          <td>{b.created_at}</td>
+                  <div className={`AdminNote ${adminStatus.state === "error" ? "is-error" : ""}`}>
+                    {adminStatus.message || (adminToken ? "Token active." : "Set default admin in backend env to login.")}
+                  </div>
+
+                  <div className="FormHint">
+                    Backend env (optional): <code>ADMIN_DEFAULT_USERNAME</code>, <code>ADMIN_DEFAULT_PASSWORD</code>,{" "}
+                    <code>ADMIN_LOGIN_ENABLED=true</code>
+                  </div>
+                </form>
+
+                <div className="AdminActions">
+                  <div className="AdminBar">
+                    <div className="AdminKeyField">
+                      <span className="AdminKeyLabel">Session</span>
+                      <input className="Input" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="Bearer token" />
+                    </div>
+                    <button type="button" className="Button Secondary" onClick={loadAdminBookings}>
+                      {adminStatus.state === "loading" ? "Loading…" : "Load Bookings"}
+                    </button>
+                  </div>
+
+                  {adminStatus.state === "error" ? <div className="AdminError">{adminStatus.message}</div> : null}
+
+                  <div className="AdminTableWrap">
+                    <table className="AdminTable">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Phone</th>
+                          <th>Pincode</th>
+                          <th>Status</th>
+                          <th>Update</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      </thead>
+                      <tbody>
+                        {adminBookings.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="AdminEmpty">
+                              No bookings loaded yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          adminBookings.map((b) => (
+                            <AdminBookingRow key={b.id} booking={b} onUpdate={updateAdminBookingStatus} />
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
 
-              <div className="FormHint">
-                Admin endpoint: <code>/api/admin/bookings</code>. If backend sets <code>ADMIN_API_KEY</code>, provide it
-                in <code>X-Admin-Key</code>.
+                  <div className="FormHint">
+                    Customer tracking API: <code>/api/track</code> • Admin update API: <code>/api/admin/bookings/:id/status</code>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -843,6 +1066,46 @@ function App() {
         </footer>
       </main>
     </div>
+  );
+}
+
+// Small row component for admin table (kept inside App.js to avoid new component tree).
+function AdminBookingRow({ booking, onUpdate }) {
+  const [status, setStatus] = useState(formatStatus(booking.status));
+  const [notes, setNotes] = useState(booking.notes || "");
+
+  useEffect(() => {
+    setStatus(formatStatus(booking.status));
+    setNotes(booking.notes || "");
+  }, [booking.status, booking.notes]);
+
+  return (
+    <tr>
+      <td>{booking.id}</td>
+      <td>{booking.name}</td>
+      <td>{booking.phone}</td>
+      <td>{booking.pincode}</td>
+      <td>
+        <select className="Select" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </td>
+      <td>
+        <div className="AdminUpdateCell">
+          <input className="Input SmallInput" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" />
+          <button
+            type="button"
+            className="Button Secondary SmallBtn"
+            onClick={() => onUpdate(booking.id, status, notes)}
+            aria-label={`Update booking ${booking.id}`}
+          >
+            Save
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 

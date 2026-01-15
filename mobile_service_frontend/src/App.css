@@ -1247,6 +1247,310 @@ code {
   }
 }
 
+/* Floating buttons */
+.Fab {
+  position: fixed;
+  right: 18px;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  font-weight: 1000;
+  z-index: 60;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.Fab:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.FabWhatsApp {
+  bottom: 92px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ffffff;
+}
+
+.FabCall {
+  bottom: 28px;
+  background: linear-gradient(135deg, rgba(255, 62, 165, 1), rgba(124, 58, 237, 0.86));
+  color: #ffffff;
+}
+
+/* Show Call FAB mainly on mobile */
+@media (min-width: 820px) {
+  .FabCall {
+    display: none;
+  }
+}
+
+/* Track Status */
+.TrackCard {
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  padding: 16px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.TrackTabs {
+  display: inline-flex;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.TrackTab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 1000;
+  padding: 10px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.TrackTab.is-active {
+  background: rgba(255, 62, 165, 0.18);
+  border-color: rgba(255, 62, 165, 0.22);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.TrackRow {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.TrackMsg {
+  margin-top: 10px;
+  min-height: 18px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.TrackMsg.is-error {
+  color: rgba(255, 180, 190, 0.95);
+}
+
+.TrackResult {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.TrackBadgeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.TrackMeta {
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 12px;
+}
+
+.StatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 1000;
+  border-radius: 999px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.Status-Pending {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.Status-InProgress {
+  border-color: rgba(34, 211, 238, 0.28);
+  background: rgba(34, 211, 238, 0.10);
+}
+
+.Status-Completed {
+  border-color: rgba(34, 197, 94, 0.30);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.TrackGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.TrackItem {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.TrackLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.TrackValue {
+  margin-top: 6px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Store locator */
+.StoreGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.CityList {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.CityChip {
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 11, 16, 0.12);
+  background: rgba(255, 62, 165, 0.10);
+  font-weight: 1000;
+}
+
+/* Map iframe wrapper */
+.MapWrap {
+  margin-top: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+  min-height: 280px;
+}
+
+.MapWrap iframe {
+  width: 100%;
+  height: 320px;
+  border: 0;
+  display: block;
+}
+
+/* Contact form */
+.ContactGrid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.TextArea {
+  resize: vertical;
+}
+
+/* Admin additions */
+.AdminSplit {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.AdminLoginTitle {
+  font-weight: 1000;
+  color: rgba(255, 255, 255, 0.92);
+  margin-bottom: 10px;
+}
+
+.DarkLabel {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.AdminNote {
+  margin-top: 10px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.AdminNote.is-error {
+  color: rgba(255, 180, 190, 0.95);
+}
+
+.Select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 10px 10px;
+  font-weight: 900;
+}
+
+.AdminUpdateCell {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 360px;
+}
+
+.SmallInput {
+  padding: 10px 10px;
+  border-radius: 12px;
+}
+
+.SmallBtn {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+@media (min-width: 980px) {
+  .TrackRow {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .TrackGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .TrackSpan2 {
+    grid-column: 1 / -1;
+  }
+
+  .StoreGrid {
+    grid-template-columns: 0.9fr 1.1fr;
+    align-items: start;
+  }
+
+  .ContactGrid2 {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .AdminSplit {
+    grid-template-columns: 0.42fr 0.58fr;
+    align-items: start;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .NavLink,
@@ -1258,7 +1562,8 @@ code {
   .Input,
   .DotBtn,
   .TopHeader-social,
-  .PhoneFrame {
+  .PhoneFrame,
+  .Fab {
     transition: none !important;
     animation: none !important;
   }
