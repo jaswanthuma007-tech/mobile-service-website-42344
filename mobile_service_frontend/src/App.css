@@ -1551,6 +1551,404 @@ code {
   }
 }
 
+/* Booking Flow (multi-step) */
+.FlowShell {
+  min-height: 100vh;
+  background: radial-gradient(900px 420px at 20% 5%, rgba(255, 62, 165, 0.18), transparent 55%),
+    radial-gradient(900px 520px at 85% 10%, rgba(124, 58, 237, 0.14), transparent 55%),
+    linear-gradient(180deg, #ffffff, #ffffff);
+}
+
+.FlowTop {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid rgba(11, 11, 16, 0.08);
+}
+
+.FlowTopInner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.FlowBreadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.FlowBack {
+  text-decoration: none;
+  font-weight: 1000;
+  color: rgba(11, 11, 16, 0.82);
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 12px;
+  border-radius: 999px;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.FlowBack:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 62, 165, 0.22);
+}
+
+.FlowCrumbMeta {
+  font-weight: 1000;
+  color: rgba(11, 11, 16, 0.64);
+}
+
+.FlowHeader {
+  display: grid;
+  gap: 6px;
+}
+
+.FlowTitle {
+  font-size: 18px;
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+}
+
+.FlowSub {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(11, 11, 16, 0.60);
+}
+
+.Progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: center;
+}
+
+.ProgressStep {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  position: relative;
+}
+
+.ProgressDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 1000;
+  border: 1px solid rgba(11, 11, 16, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(11, 11, 16, 0.86);
+}
+
+.ProgressLabel {
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(11, 11, 16, 0.74);
+}
+
+.ProgressBar {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  width: 16px;
+  background: rgba(11, 11, 16, 0.12);
+}
+
+.ProgressStep.is-active .ProgressDot {
+  border-color: rgba(255, 62, 165, 0.40);
+  box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.14);
+}
+
+.ProgressStep.is-done .ProgressDot {
+  background: rgba(255, 62, 165, 0.14);
+  border-color: rgba(255, 62, 165, 0.28);
+}
+
+.FlowBody {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 18px 16px 60px;
+}
+
+.FlowCard {
+  border-radius: var(--radius);
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.90);
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+  animation: slideIn 540ms cubic-bezier(0.2, 1, 0.2, 1);
+}
+
+.FlowLoading {
+  font-weight: 900;
+  color: rgba(11, 11, 16, 0.70);
+  padding: 8px 2px 12px;
+}
+
+.FlowBookingMeta {
+  border-radius: 16px;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(11, 11, 16, 0.03);
+  padding: 12px;
+}
+
+.MetaRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.MetaItem {
+  display: grid;
+  gap: 4px;
+}
+
+.MetaLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(11, 11, 16, 0.60);
+}
+
+.MetaValue {
+  font-weight: 1000;
+  color: rgba(11, 11, 16, 0.88);
+}
+
+.MetaPills {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.Pill {
+  display: inline-flex;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 1000;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.78);
+  color: rgba(11, 11, 16, 0.82);
+}
+
+.Pill.Pink {
+  border-color: rgba(255, 62, 165, 0.22);
+  background: rgba(255, 62, 165, 0.10);
+}
+
+.FlowSearchRow {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.FlowNavBtns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.FlowMsg {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(11, 11, 16, 0.03);
+  font-weight: 900;
+  color: rgba(11, 11, 16, 0.74);
+}
+
+.FlowMsg.is-error {
+  border-color: rgba(239, 68, 68, 0.34);
+  background: rgba(239, 68, 68, 0.08);
+  color: rgba(11, 11, 16, 0.86);
+}
+
+.FlowGrid {
+  margin-top: 12px;
+  grid-template-columns: 1fr;
+}
+
+.FlowChoiceCard {
+  text-align: left;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.FlowChoiceCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 62, 165, 0.22);
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.14);
+}
+
+.FlowChoiceCard.is-selected {
+  border-color: rgba(255, 62, 165, 0.34);
+  box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.10), 0 20px 46px rgba(0, 0, 0, 0.12);
+}
+
+.FlowChoiceTitle {
+  font-weight: 1000;
+  font-size: 15px;
+  color: rgba(11, 11, 16, 0.92);
+}
+
+.FlowChoiceSub {
+  margin-top: 6px;
+  font-weight: 900;
+  font-size: 12px;
+  color: rgba(11, 11, 16, 0.62);
+}
+
+.FlowSvcRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.FlowSvcIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 62, 165, 0.10);
+  border: 1px solid rgba(255, 62, 165, 0.18);
+}
+
+.FlowSvcMain {
+  min-width: 0;
+}
+
+.FlowCheck {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 1000;
+  border: 1px solid rgba(11, 11, 16, 0.16);
+  background: rgba(255, 255, 255, 0.90);
+}
+
+.FlowCheck.is-on {
+  border-color: rgba(255, 62, 165, 0.34);
+  background: rgba(255, 62, 165, 0.14);
+}
+
+.FlowFooter {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.FlowHint {
+  margin-top: 12px;
+  font-weight: 900;
+  color: rgba(11, 11, 16, 0.68);
+}
+
+.FlowBottomNote {
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(11, 11, 16, 0.62);
+}
+
+/* Confirmation */
+.ConfirmBox {
+  margin-top: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: radial-gradient(circle at 25% 20%, rgba(255, 62, 165, 0.16), transparent 55%),
+    rgba(255, 255, 255, 0.92);
+  padding: 16px;
+}
+
+.ConfirmTitle {
+  font-weight: 1000;
+  font-size: 16px;
+}
+
+.ConfirmGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.ConfirmItem {
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.ConfirmLabel {
+  font-size: 12px;
+  font-weight: 1000;
+  color: rgba(11, 11, 16, 0.62);
+}
+
+.ConfirmValue {
+  margin-top: 6px;
+  font-weight: 1000;
+  color: rgba(11, 11, 16, 0.90);
+}
+
+.ConfirmMsg {
+  margin-top: 12px;
+  font-weight: 1000;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.10);
+}
+
+.ConfirmActions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 720px) {
+  .MetaRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .FlowGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ConfirmGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ConfirmSpan2 {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .NavLink,
@@ -1563,7 +1961,8 @@ code {
   .DotBtn,
   .TopHeader-social,
   .PhoneFrame,
-  .Fab {
+  .Fab,
+  .FlowCard {
     transition: none !important;
     animation: none !important;
   }

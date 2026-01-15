@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import BookingFlow from "./BookingFlow";
 import "./App.css";
 
 /**
@@ -63,8 +65,10 @@ function formatStatus(status) {
   return s || "Pending";
 }
 
-// PUBLIC_INTERFACE
-function App() {
+/** Inner home page (single-page sections) extracted to keep App routing clean. */
+function HomeShell() {
+  const navigate = useNavigate();
+
   const sections = useMemo(
     () => [
       { id: "home", label: "Home" },
@@ -272,13 +276,23 @@ function App() {
         pincode: String(booking.pincode || "").trim(),
       };
       const resp = await fetchJson("/api/bookings", { method: "POST", body: JSON.stringify(payload) });
+
+      const bookingId = resp?.id;
       setBookingStatus({
         state: "success",
         message:
-          resp?.id != null
-            ? `Booking received! Your Booking ID is #${resp.id}.`
+          bookingId != null
+            ? `Booking received. Your Booking ID is #${bookingId}. Redirecting…`
             : resp?.message || "Booking received! Our team will contact you shortly.",
       });
+
+      // Redirect into the new device selection flow (step 1: brand).
+      if (bookingId != null) {
+        window.setTimeout(() => {
+          navigate(`/booking/${bookingId}/brand`);
+        }, 700);
+      }
+
       setBooking({ name: "", phone: "", pincode: "" });
       setBookingTouched({});
       setPincodeStatus({ state: "idle", valid: null, message: "" });
@@ -1106,6 +1120,16 @@ function AdminBookingRow({ booking, onUpdate }) {
         </div>
       </td>
     </tr>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomeShell />} />
+      <Route path="/booking/:bookingId/:step" element={<BookingFlow />} />
+      <Route path="*" element={<HomeShell />} />
+    </Routes>
   );
 }
 
