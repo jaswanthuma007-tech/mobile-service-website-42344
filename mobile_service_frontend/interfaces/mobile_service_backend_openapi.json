@@ -1,0 +1,1100 @@
+{
+  "paths": {
+    "/": {
+      "get": {
+        "responses": {
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "tags": [
+          "Healt Check"
+        ]
+      }
+    },
+    "/api/services": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Return a list of services shown on the Services section.",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/brands": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Return available brands for step-1 (Select Brand).",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/models": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Return models for step-2 (Select Model).",
+        "description": "Query params:\n- brand: selected brand name",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/booking/services": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingServicesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Return selectable repair services (icons + price hints).",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/about": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AboutResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Return content for the About section.",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/contact": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Return contact info for the Contact section.",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/submit_form": {
+      "post": {
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/UNPROCESSABLE_ENTITY"
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitFormResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitFormRequest"
+              }
+            }
+          }
+        },
+        "summary": "Store a customer request submission.",
+        "description": "Expects JSON body:\n- name, phone, email, mobile_model, problem\n\nReturns:\n- id: created request ID\n- message: user-facing message",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/pincode/check": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PincodeCheckResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Validate the provided pincode.",
+        "description": "Query params:\n- pincode: 6-digit pincode\n\nNote: In a real system this would query a serviceability table.\nFor now, we accept any 6-digit pincode starting with 1-9.",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/UNPROCESSABLE_ENTITY"
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingRequest"
+              }
+            }
+          }
+        },
+        "summary": "Create a booking.",
+        "description": "Expects JSON body:\n- name, phone, pincode\n\nReturns:\n- id: created booking ID\n- message: user-facing message",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/book": {
+      "post": {
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/UNPROCESSABLE_ENTITY"
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingRequest"
+              }
+            }
+          }
+        },
+        "summary": "Create a booking (alias for /api/bookings).",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/booking/{booking_id}": {
+      "put": {
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/UNPROCESSABLE_ENTITY"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingUpdateResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingUpdateRequest"
+              }
+            }
+          }
+        },
+        "summary": "Update booking fields used by the multi-step flow.",
+        "description": "Path params:\n- booking_id\n\nJSON body (any subset):\n- brand: string\n- model: string\n- service: string (comma-separated; frontend may send joined values)\n\nReturns:\n- booking: updated booking",
+        "tags": [
+          "Mobile Service API"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "booking_id",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ]
+    },
+    "/api/admin/bookings": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminBookingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "List recent bookings (admin).",
+        "description": "Auth:\n- Prefer: Authorization: Bearer <token>\n- Back-compat: X-Admin-Key if ADMIN_API_KEY is configured\n\nOptional query params:\n- limit: max rows (1..1000)",
+        "tags": [
+          "Mobile Service API"
+        ]
+      }
+    },
+    "/api/admin/login": {
+      "post": {
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/UNPROCESSABLE_ENTITY"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminLoginResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminLoginRequest"
+              }
+            }
+          }
+        },
+        "summary": "Login admin and return a token.",
+        "description": "If ADMIN_LOGIN_ENABLED is true, this endpoint is used by the frontend admin panel.\n\nExpects JSON:\n- username\n- password\n\nReturns:\n- token\n- message",
+        "tags": [
+          "Admin & Tracking API"
+        ]
+      }
+    },
+    "/api/admin/bookings/{booking_id}/status": {
+      "put": {
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/UNPROCESSABLE_ENTITY"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUpdateBookingStatusResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateBookingStatusRequest"
+              }
+            }
+          }
+        },
+        "summary": "Update booking status.",
+        "description": "Auth:\n- Authorization: Bearer <token>\n\nPath params:\n- booking_id\n\nJSON body:\n- status: Pending | In Progress | Completed\n- notes: optional",
+        "tags": [
+          "Admin & Tracking API"
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "booking_id",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ]
+    },
+    "/api/track": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackStatusResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/DEFAULT_ERROR"
+          }
+        },
+        "summary": "Track repair status by booking ID or phone.",
+        "description": "Query params:\n- booking_id: integer (optional)\n- phone: string (optional)\n\nBehavior:\n- If booking_id provided, returns that booking if exists.\n- Else if phone provided, returns the latest booking for that phone.",
+        "tags": [
+          "Admin & Tracking API"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Mobile Service Backend API",
+    "version": "v1"
+  },
+  "tags": [
+    {
+      "name": "Healt Check",
+      "description": "Health check route"
+    },
+    {
+      "name": "Mobile Service API",
+      "description": "Mobile Service Website APIs"
+    },
+    {
+      "name": "Admin & Tracking API",
+      "description": "Admin auth, admin actions, and customer tracking endpoints"
+    }
+  ],
+  "openapi": "3.0.3",
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "Error code"
+          },
+          "status": {
+            "type": "string",
+            "description": "Error name"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "errors": {
+            "type": "object",
+            "description": "Errors",
+            "additionalProperties": {}
+          }
+        }
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "total_pages": {
+            "type": "integer"
+          },
+          "first_page": {
+            "type": "integer"
+          },
+          "last_page": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "previous_page": {
+            "type": "integer"
+          },
+          "next_page": {
+            "type": "integer"
+          }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Service ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Service title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Service description"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Optional icon/emoji",
+            "nullable": true
+          },
+          "price_hint": {
+            "type": "string",
+            "description": "Optional pricing hint",
+            "nullable": true
+          }
+        },
+        "required": [
+          "description",
+          "id",
+          "title"
+        ]
+      },
+      "ServicesResponse": {
+        "type": "object",
+        "properties": {
+          "services": {
+            "type": "array",
+            "description": "List of services",
+            "items": {
+              "$ref": "#/components/schemas/Service"
+            }
+          }
+        },
+        "required": [
+          "services"
+        ]
+      },
+      "Brand": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Brand ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Brand name"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "BrandsResponse": {
+        "type": "object",
+        "properties": {
+          "brands": {
+            "type": "array",
+            "description": "Available brands",
+            "items": {
+              "$ref": "#/components/schemas/Brand"
+            }
+          }
+        },
+        "required": [
+          "brands"
+        ]
+      },
+      "Model": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Model ID"
+          },
+          "brand": {
+            "type": "string",
+            "description": "Brand name"
+          },
+          "name": {
+            "type": "string",
+            "description": "Model name"
+          }
+        },
+        "required": [
+          "brand",
+          "id",
+          "name"
+        ]
+      },
+      "ModelsResponse": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "description": "Available models for the selected brand",
+            "items": {
+              "$ref": "#/components/schemas/Model"
+            }
+          }
+        },
+        "required": [
+          "models"
+        ]
+      },
+      "BookingServiceOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Service option ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Service title"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Optional icon/emoji",
+            "nullable": true
+          },
+          "price_hint": {
+            "type": "string",
+            "description": "Optional price hint",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ]
+      },
+      "BookingServicesResponse": {
+        "type": "object",
+        "properties": {
+          "services": {
+            "type": "array",
+            "description": "Selectable repair services",
+            "items": {
+              "$ref": "#/components/schemas/BookingServiceOption"
+            }
+          }
+        },
+        "required": [
+          "services"
+        ]
+      },
+      "AboutResponse": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "About section description"
+          },
+          "highlights": {
+            "type": "array",
+            "description": "Optional highlight stats (label/value)",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "bullets": {
+            "type": "array",
+            "description": "Optional about bullet points",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "description"
+        ]
+      },
+      "ContactResponse": {
+        "type": "object",
+        "properties": {
+          "hours": {
+            "type": "string",
+            "description": "Business hours"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Support email"
+          }
+        },
+        "required": [
+          "email",
+          "hours",
+          "phone"
+        ]
+      },
+      "SubmitFormRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Customer name"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 7,
+            "description": "Customer phone"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Customer email"
+          },
+          "mobile_model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Mobile device model"
+          },
+          "problem": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Problem description"
+          }
+        },
+        "required": [
+          "email",
+          "mobile_model",
+          "name",
+          "phone",
+          "problem"
+        ]
+      },
+      "SubmitFormResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Created request ID"
+          },
+          "message": {
+            "type": "string",
+            "description": "User-facing success message"
+          }
+        },
+        "required": [
+          "id",
+          "message"
+        ]
+      },
+      "PincodeCheckResponse": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the pincode is serviceable"
+          },
+          "message": {
+            "type": "string",
+            "description": "User-facing validation message"
+          }
+        },
+        "required": [
+          "message",
+          "valid"
+        ]
+      },
+      "BookingRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Customer name"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 7,
+            "description": "Customer phone"
+          },
+          "pincode": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "6-digit pincode"
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "pincode"
+        ]
+      },
+      "BookingResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Created booking ID"
+          },
+          "message": {
+            "type": "string",
+            "description": "User-facing success message"
+          }
+        },
+        "required": [
+          "id",
+          "message"
+        ]
+      },
+      "BookingUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "brand": {
+            "type": "string",
+            "description": "Selected device brand",
+            "nullable": true
+          },
+          "model": {
+            "type": "string",
+            "description": "Selected device model",
+            "nullable": true
+          },
+          "service": {
+            "type": "string",
+            "description": "Selected service(s) as comma-separated string",
+            "nullable": true
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Booking ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Customer name"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone"
+          },
+          "pincode": {
+            "type": "string",
+            "description": "6-digit pincode"
+          },
+          "brand": {
+            "type": "string",
+            "description": "Selected device brand",
+            "nullable": true
+          },
+          "model": {
+            "type": "string",
+            "description": "Selected device model",
+            "nullable": true
+          },
+          "service": {
+            "type": "string",
+            "description": "Selected service(s) string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Repair status (Pending/In Progress/Completed)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional admin notes",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last update timestamp",
+            "nullable": true
+          }
+        },
+        "required": [
+          "created_at",
+          "id",
+          "name",
+          "phone",
+          "pincode",
+          "status"
+        ]
+      },
+      "BookingUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "booking": {
+            "description": "Updated booking object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Booking"
+              }
+            ]
+          }
+        },
+        "required": [
+          "booking"
+        ]
+      },
+      "AdminBookingsResponse": {
+        "type": "object",
+        "properties": {
+          "bookings": {
+            "type": "array",
+            "description": "Recent bookings",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          }
+        },
+        "required": [
+          "bookings"
+        ]
+      },
+      "AdminLoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Admin username"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Admin password"
+          }
+        },
+        "required": [
+          "password",
+          "username"
+        ]
+      },
+      "AdminLoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Admin session token"
+          },
+          "message": {
+            "type": "string",
+            "description": "User-facing success message"
+          }
+        },
+        "required": [
+          "message",
+          "token"
+        ]
+      },
+      "AdminUpdateBookingStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "Pending",
+              "In Progress",
+              "Completed"
+            ],
+            "description": "New status value"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes",
+            "nullable": true
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "AdminUpdateBookingStatusResponse": {
+        "type": "object",
+        "properties": {
+          "booking": {
+            "description": "Updated booking",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Booking"
+              }
+            ]
+          }
+        },
+        "required": [
+          "booking"
+        ]
+      },
+      "TrackStatusResponse": {
+        "type": "object",
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "description": "Whether a booking was found"
+          },
+          "booking": {
+            "description": "Found booking",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Booking"
+              },
+              {
+                "type": "object",
+                "nullable": true
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "User-facing message"
+          }
+        },
+        "required": [
+          "found",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "DEFAULT_ERROR": {
+        "description": "Default error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UNPROCESSABLE_ENTITY": {
+        "description": "Unprocessable Entity",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

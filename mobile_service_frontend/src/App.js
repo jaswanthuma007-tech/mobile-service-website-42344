@@ -475,7 +475,7 @@ function HomeShell() {
             </div>
             <div className="Brand-text">
               <div className="Brand-title">Mobile Service</div>
-              <div className="Brand-subtitle">Black • Pink • White</div>
+              <div className="Brand-subtitle">Black • Blue • White</div>
             </div>
           </button>
 
@@ -1065,7 +1065,7 @@ function HomeShell() {
               </div>
               <div>
                 <div className="FooterTitle">Mobile Service</div>
-                <div className="FooterText">Modern black/pink theme • Smooth animations • Responsive</div>
+                <div className="FooterText">Modern black/blue theme • Smooth animations • Responsive</div>
               </div>
             </div>
 

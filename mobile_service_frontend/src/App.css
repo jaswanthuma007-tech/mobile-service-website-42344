@@ -1,4 +1,4 @@
-/* Black / Pink / White theme with modern gradients + smooth animations */
+/* Black / Blue / White theme with modern gradients + smooth animations */
 
 :root {
   --bg: #ffffff;
@@ -10,8 +10,9 @@
   --dark-2: #101018;
   --white: #ffffff;
 
-  --pink: #ff3ea5;
-  --pink-2: #ff65b8;
+  /* Theme accents (updated from pink -> blue) */
+  --blue: #2563eb; /* style guide primary */
+  --blue-2: #3b82f6; /* hover/secondary blue */
   --violet: #7c3aed;
   --cyan: #22d3ee;
 
@@ -23,9 +24,15 @@
 
   --container: 1180px;
 
-  --grad-hero: radial-gradient(1200px 600px at 10% 10%, rgba(255, 62, 165, 0.18), transparent 55%),
+  --grad-hero: radial-gradient(1200px 600px at 10% 10%, rgba(37, 99, 235, 0.16), transparent 55%),
     radial-gradient(900px 520px at 80% 30%, rgba(124, 58, 237, 0.14), transparent 55%),
     linear-gradient(180deg, #ffffff, #ffffff);
+
+  /* Compatibility aliases:
+     The codebase historically used --pink and Pink* classes.
+     Keep aliases to avoid breaking styles while the accent becomes blue. */
+  --pink: var(--blue);
+  --pink-2: var(--blue-2);
 }
 
 * {
@@ -180,8 +187,8 @@ code {
 
 .TopHeader-social:hover {
   transform: translateY(-1px);
-  background: rgba(255, 62, 165, 0.18);
-  border-color: rgba(255, 62, 165, 0.28);
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(37, 99, 235, 0.28);
 }
 
 /* Header/Navbar */
@@ -223,8 +230,8 @@ code {
   color: #ffffff;
   font-weight: 1000;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, rgba(11, 11, 16, 1), rgba(255, 62, 165, 0.95));
-  box-shadow: 0 16px 30px rgba(255, 62, 165, 0.18);
+  background: linear-gradient(135deg, rgba(11, 11, 16, 1), rgba(37, 99, 235, 0.95));
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.18);
 }
 
 .Brand-title {
@@ -310,8 +317,8 @@ code {
 }
 
 .NavLink:hover {
-  background: rgba(255, 62, 165, 0.10);
-  border-color: rgba(255, 62, 165, 0.18);
+  background: rgba(37, 99, 235, 0.10);
+  border-color: rgba(37, 99, 235, 0.18);
   color: rgba(11, 11, 16, 0.92);
   transform: translateY(-1px);
 }
@@ -326,8 +333,8 @@ code {
   margin-left: 4px;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 62, 165, 0.28);
-  background: rgba(255, 62, 165, 0.14);
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  background: rgba(37, 99, 235, 0.14);
   color: rgba(11, 11, 16, 0.92);
   font-weight: 1000;
   cursor: pointer;
@@ -336,8 +343,8 @@ code {
 
 .NavCTA:hover {
   transform: translateY(-1px);
-  background: rgba(255, 62, 165, 0.18);
-  box-shadow: 0 18px 30px rgba(255, 62, 165, 0.18);
+  background: rgba(37, 99, 235, 0.18);
+  box-shadow: 0 18px 30px rgba(37, 99, 235, 0.18);
 }
 
 /* Hero */
@@ -412,19 +419,20 @@ code {
   pointer-events: none;
 }
 
+/* Keep class name HeroSlide-pink for existing JSX, but render blue accent */
 .HeroSlide-pink::before {
-  background: radial-gradient(circle at 25% 25%, rgba(255, 62, 165, 0.24), transparent 45%),
+  background: radial-gradient(circle at 25% 25%, rgba(37, 99, 235, 0.22), transparent 45%),
     radial-gradient(circle at 75% 55%, rgba(11, 11, 16, 0.12), transparent 50%);
 }
 
 .HeroSlide-violet::before {
   background: radial-gradient(circle at 30% 25%, rgba(124, 58, 237, 0.22), transparent 46%),
-    radial-gradient(circle at 75% 55%, rgba(255, 62, 165, 0.14), transparent 50%);
+    radial-gradient(circle at 75% 55%, rgba(37, 99, 235, 0.12), transparent 50%);
 }
 
 .HeroSlide-cyan::before {
   background: radial-gradient(circle at 30% 25%, rgba(34, 211, 238, 0.18), transparent 46%),
-    radial-gradient(circle at 80% 60%, rgba(255, 62, 165, 0.14), transparent 52%);
+    radial-gradient(circle at 80% 60%, rgba(37, 99, 235, 0.12), transparent 52%);
 }
 
 .HeroSlide-copy {
@@ -472,8 +480,8 @@ code {
 }
 
 .DotBtn.is-active {
-  background: rgba(255, 62, 165, 0.9);
-  border-color: rgba(255, 62, 165, 0.7);
+  background: rgba(37, 99, 235, 0.92);
+  border-color: rgba(37, 99, 235, 0.72);
   transform: scale(1.1);
 }
 
@@ -522,8 +530,8 @@ code {
   position: absolute;
   inset: 34px 14px 16px 14px;
   border-radius: 22px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 62, 165, 0.48), transparent 55%),
-    radial-gradient(circle at 80% 65%, rgba(124, 58, 237, 0.40), transparent 58%),
+  background: radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.42), transparent 55%),
+    radial-gradient(circle at 80% 65%, rgba(124, 58, 237, 0.38), transparent 58%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -532,7 +540,7 @@ code {
   position: absolute;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(255, 62, 165, 0.20), transparent 60%);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.18), transparent 60%);
   filter: blur(12px);
   opacity: 0.9;
 }
@@ -593,9 +601,9 @@ code {
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 30% 20%, rgba(255, 62, 165, 0.18), transparent 45%),
+  background: radial-gradient(circle at 30% 20%, rgba(37, 99, 235, 0.16), transparent 45%),
     radial-gradient(circle at 70% 70%, rgba(11, 11, 16, 0.08), transparent 55%);
-  border: 1px solid rgba(255, 62, 165, 0.16);
+  border: 1px solid rgba(37, 99, 235, 0.16);
 }
 
 .CardTitle {
@@ -617,9 +625,9 @@ code {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 1000;
-  color: rgba(255, 62, 165, 0.95);
-  background: rgba(255, 62, 165, 0.12);
-  border: 1px solid rgba(255, 62, 165, 0.22);
+  color: rgba(37, 99, 235, 0.98);
+  background: rgba(37, 99, 235, 0.10);
+  border: 1px solid rgba(37, 99, 235, 0.22);
 }
 
 .Lift {
@@ -628,7 +636,7 @@ code {
 
 .Lift:hover {
   transform: translateY(-3px);
-  border-color: rgba(255, 62, 165, 0.20);
+  border-color: rgba(37, 99, 235, 0.20);
   box-shadow: 0 20px 46px rgba(0, 0, 0, 0.16);
 }
 
@@ -638,7 +646,7 @@ code {
 
 .LiftDark:hover {
   transform: translateY(-3px);
-  border-color: rgba(255, 62, 165, 0.22);
+  border-color: rgba(37, 99, 235, 0.22);
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
 }
 
@@ -680,7 +688,7 @@ code {
   content: "";
   position: absolute;
   inset: -40%;
-  background: radial-gradient(circle at 30% 20%, rgba(255, 62, 165, 0.22), transparent 42%),
+  background: radial-gradient(circle at 30% 20%, rgba(37, 99, 235, 0.18), transparent 42%),
     radial-gradient(circle at 80% 50%, rgba(124, 58, 237, 0.16), transparent 40%);
   transform: rotate(8deg);
   opacity: 0.8;
@@ -720,9 +728,11 @@ code {
   font-weight: 1000;
 }
 
-.GlassBadge.Pink {
-  background: rgba(255, 62, 165, 0.14);
-  border-color: rgba(255, 62, 165, 0.22);
+/* Keep existing "Pink" badge class but render blue */
+.GlassBadge.Pink,
+.GlassBadge.Blue {
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(37, 99, 235, 0.22);
   color: rgba(11, 11, 16, 0.9);
 }
 
@@ -773,8 +783,8 @@ code {
 }
 
 .Input:focus {
-  border-color: rgba(255, 62, 165, 0.45);
-  box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.14);
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
   transform: translateY(-1px);
 }
 
@@ -874,13 +884,16 @@ code {
   box-shadow: 0 20px 46px rgba(11, 11, 16, 0.22);
 }
 
-.PinkPrimary {
-  background: linear-gradient(135deg, rgba(255, 62, 165, 1), rgba(124, 58, 237, 0.86));
-  box-shadow: 0 18px 40px rgba(255, 62, 165, 0.20);
+/* Keep .PinkPrimary class name but make it blue-accent */
+.PinkPrimary,
+.BluePrimary {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(124, 58, 237, 0.86));
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.20);
 }
 
-.PinkPrimary:hover {
-  box-shadow: 0 24px 54px rgba(255, 62, 165, 0.26);
+.PinkPrimary:hover,
+.BluePrimary:hover {
+  box-shadow: 0 24px 54px rgba(37, 99, 235, 0.26);
 }
 
 .Button.Secondary {
@@ -891,8 +904,8 @@ code {
 
 .Button.Secondary:hover {
   transform: translateY(-1px);
-  background: rgba(255, 62, 165, 0.12);
-  border-color: rgba(255, 62, 165, 0.22);
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.22);
 }
 
 .CheckBtn {
@@ -965,11 +978,13 @@ code {
   font-weight: 650;
 }
 
-.AccentPink {
-  background: radial-gradient(circle at 20% 20%, rgba(255, 62, 165, 0.22), transparent 55%),
+/* Keep AccentPink class for JSX compatibility, but render as blue accent */
+.AccentPink,
+.AccentBlue {
+  background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.20), transparent 55%),
     radial-gradient(circle at 80% 70%, rgba(124, 58, 237, 0.20), transparent 55%),
     rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 62, 165, 0.16);
+  border-color: rgba(37, 99, 235, 0.16);
 }
 
 /* Bullets */
@@ -1000,8 +1015,8 @@ code {
 }
 
 .CheckDark {
-  background: rgba(255, 62, 165, 0.14);
-  border: 1px solid rgba(255, 62, 165, 0.22);
+  background: rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(37, 99, 235, 0.22);
   color: rgba(255, 255, 255, 0.92);
 }
 
@@ -1016,7 +1031,7 @@ code {
   display: inline-flex;
   margin-top: 10px;
   font-weight: 1000;
-  color: rgba(255, 62, 165, 0.95);
+  color: rgba(37, 99, 235, 0.95);
   text-decoration: none;
 }
 
@@ -1111,7 +1126,7 @@ code {
 }
 
 .AdminTable tr:hover td {
-  background: rgba(255, 62, 165, 0.10);
+  background: rgba(37, 99, 235, 0.10);
 }
 
 .AdminEmpty {
@@ -1185,9 +1200,9 @@ code {
 }
 
 .FooterLinkDark:hover {
-  background: rgba(255, 62, 165, 0.14);
-  border-color: rgba(255, 62, 165, 0.22);
-  box-shadow: 0 18px 40px rgba(255, 62, 165, 0.10);
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(37, 99, 235, 0.22);
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.10);
 }
 
 /* Responsive */
@@ -1277,7 +1292,7 @@ code {
 
 .FabCall {
   bottom: 28px;
-  background: linear-gradient(135deg, rgba(255, 62, 165, 1), rgba(124, 58, 237, 0.86));
+  background: linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(124, 58, 237, 0.86));
   color: #ffffff;
 }
 
@@ -1319,8 +1334,8 @@ code {
 }
 
 .TrackTab.is-active {
-  background: rgba(255, 62, 165, 0.18);
-  border-color: rgba(255, 62, 165, 0.22);
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(37, 99, 235, 0.22);
   color: rgba(255, 255, 255, 0.94);
 }
 
@@ -1434,7 +1449,7 @@ code {
   padding: 10px 12px;
   border-radius: 999px;
   border: 1px solid rgba(11, 11, 16, 0.12);
-  background: rgba(255, 62, 165, 0.10);
+  background: rgba(37, 99, 235, 0.10);
   font-weight: 1000;
 }
 
@@ -1554,7 +1569,7 @@ code {
 /* Booking Flow (multi-step) */
 .FlowShell {
   min-height: 100vh;
-  background: radial-gradient(900px 420px at 20% 5%, rgba(255, 62, 165, 0.18), transparent 55%),
+  background: radial-gradient(900px 420px at 20% 5%, rgba(37, 99, 235, 0.16), transparent 55%),
     radial-gradient(900px 520px at 85% 10%, rgba(124, 58, 237, 0.14), transparent 55%),
     linear-gradient(180deg, #ffffff, #ffffff);
 }
@@ -1597,7 +1612,7 @@ code {
 
 .FlowBack:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 62, 165, 0.22);
+  border-color: rgba(37, 99, 235, 0.22);
 }
 
 .FlowCrumbMeta {
@@ -1666,13 +1681,13 @@ code {
 }
 
 .ProgressStep.is-active .ProgressDot {
-  border-color: rgba(255, 62, 165, 0.40);
-  box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.14);
+  border-color: rgba(37, 99, 235, 0.40);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
 }
 
 .ProgressStep.is-done .ProgressDot {
-  background: rgba(255, 62, 165, 0.14);
-  border-color: rgba(255, 62, 165, 0.28);
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(37, 99, 235, 0.28);
 }
 
 .FlowBody {
@@ -1743,9 +1758,11 @@ code {
   color: rgba(11, 11, 16, 0.82);
 }
 
-.Pill.Pink {
-  border-color: rgba(255, 62, 165, 0.22);
-  background: rgba(255, 62, 165, 0.10);
+/* Keep Pill.Pink class name for JSX compatibility, but render as blue */
+.Pill.Pink,
+.Pill.Blue {
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.10);
 }
 
 .FlowSearchRow {
@@ -1795,13 +1812,13 @@ code {
 
 .FlowChoiceCard:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 62, 165, 0.22);
+  border-color: rgba(37, 99, 235, 0.22);
   box-shadow: 0 20px 46px rgba(0, 0, 0, 0.14);
 }
 
 .FlowChoiceCard.is-selected {
-  border-color: rgba(255, 62, 165, 0.34);
-  box-shadow: 0 0 0 4px rgba(255, 62, 165, 0.10), 0 20px 46px rgba(0, 0, 0, 0.12);
+  border-color: rgba(37, 99, 235, 0.34);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10), 0 20px 46px rgba(0, 0, 0, 0.12);
 }
 
 .FlowChoiceTitle {
@@ -1830,8 +1847,8 @@ code {
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: rgba(255, 62, 165, 0.10);
-  border: 1px solid rgba(255, 62, 165, 0.18);
+  background: rgba(37, 99, 235, 0.10);
+  border: 1px solid rgba(37, 99, 235, 0.18);
 }
 
 .FlowSvcMain {
@@ -1850,8 +1867,8 @@ code {
 }
 
 .FlowCheck.is-on {
-  border-color: rgba(255, 62, 165, 0.34);
-  background: rgba(255, 62, 165, 0.14);
+  border-color: rgba(37, 99, 235, 0.34);
+  background: rgba(37, 99, 235, 0.14);
 }
 
 .FlowFooter {
@@ -1879,7 +1896,7 @@ code {
   margin-top: 12px;
   border-radius: 18px;
   border: 1px solid rgba(11, 11, 16, 0.10);
-  background: radial-gradient(circle at 25% 20%, rgba(255, 62, 165, 0.16), transparent 55%),
+  background: radial-gradient(circle at 25% 20%, rgba(37, 99, 235, 0.14), transparent 55%),
     rgba(255, 255, 255, 0.92);
   padding: 16px;
 }
