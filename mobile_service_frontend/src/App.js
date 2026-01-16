@@ -65,6 +65,10 @@ function isValidBookingPhone(value) {
   return /^[0-9]{10}$/.test(String(value || ""));
 }
 
+function normalizeBookingPincode(value) {
+  return String(value || "").replace(/\D/g, "").slice(0, 6);
+}
+
 function isValidPincode(pincode) {
   return /^[0-9]{6}$/.test(String(pincode || "").trim());
 }
@@ -296,7 +300,8 @@ function HomeShell() {
     return e;
   }, [booking]);
 
-  const canBook = Object.keys(bookingErrors).length === 0 && bookingStatus.state !== "loading";
+  const isPincodeValidNow = isValidPincode(booking.pincode);
+  const canBook = Object.keys(bookingErrors).length === 0 && bookingStatus.state !== "loading" && isPincodeValidNow;
 
   const onBookingChange = (key, value) => {
     setBooking((prev) => ({ ...prev, [key]: value }));
@@ -703,12 +708,21 @@ function HomeShell() {
                               bookingTouched.pincode && (bookingErrors.pincode || pincodeStatus.valid === false) ? "InputError" : ""
                             }`}
                             value={booking.pincode}
-                            onChange={(e) => onBookingChange("pincode", e.target.value)}
+                            onChange={(e) => onBookingChange("pincode", normalizeBookingPincode(e.target.value))}
+                            onPaste={(e) => {
+                              const text = e.clipboardData?.getData("text") ?? "";
+                              // Numeric-only; if pasted content contains non-digits, block paste.
+                              if (!/^\d+$/.test(text)) {
+                                e.preventDefault();
+                                setBookingTouched((prev) => ({ ...prev, pincode: true }));
+                              }
+                            }}
                             onBlur={() => markBookingTouched("pincode")}
                             onFocus={(e) => flashFocus(e.currentTarget)}
                             onKeyDown={handleBookingKeyDown("pincode")}
                             placeholder="6-digit pincode"
                             inputMode="numeric"
+                            pattern="[0-9]*"
                             autoComplete="postal-code"
                             maxLength={6}
                             enterKeyHint="go"
@@ -721,6 +735,7 @@ function HomeShell() {
                           className="Button Secondary CheckBtn"
                           onClick={checkPincode}
                           aria-label="Check pincode"
+                          disabled={!isValidPincode(booking.pincode) || pincodeStatus.state === "checking"}
                         >
                           {pincodeStatus.state === "checking" ? "Checking…" : "Check"}
                         </button>
