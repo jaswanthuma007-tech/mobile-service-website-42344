@@ -788,6 +788,24 @@ code {
   transform: translateY(-1px);
 }
 
+/* Smooth focus highlight (short flash) for keyboard navigation + programmatic focus. */
+@keyframes focusFlash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+  35% {
+    box-shadow: 0 0 0 7px rgba(37, 99, 235, 0.18);
+  }
+  100% {
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+  }
+}
+
+/* Applied via JS on focus so it also triggers when focus is moved programmatically. */
+.FocusFlash {
+  animation: focusFlash 260ms ease-out;
+}
+
 .InputError {
   border-color: rgba(239, 68, 68, 0.70) !important;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.10) !important;

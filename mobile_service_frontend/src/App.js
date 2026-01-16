@@ -109,6 +109,69 @@ function HomeShell() {
   const [bookingStatus, setBookingStatus] = useState({ state: "idle", message: "" }); // idle | checking | loading | success | error
   const [pincodeStatus, setPincodeStatus] = useState({ state: "idle", valid: null, message: "" }); // idle | checking | done
 
+  // Refs for Enter-key navigation (works for desktop and mobile virtual keyboard "Enter/Next").
+  const bookingNameRef = useRef(null);
+  const bookingPhoneRef = useRef(null);
+  const bookingPincodeRef = useRef(null);
+  const bookingCheckBtnRef = useRef(null);
+  const bookingSubmitBtnRef = useRef(null);
+
+  /**
+   * Adds a short highlight animation to the newly focused input.
+   * We keep this DOM-based (classList) so it works even if focus is moved programmatically.
+   */
+  const flashFocus = (el) => {
+    if (!el) return;
+    el.classList.remove("FocusFlash");
+    // Force reflow so re-adding the class restarts the animation reliably.
+    // eslint-disable-next-line no-unused-expressions
+    el.offsetHeight;
+    el.classList.add("FocusFlash");
+  };
+
+  const focusAndFlash = (el) => {
+    if (!el) return;
+    el.focus();
+    flashFocus(el);
+  };
+
+  // PUBLIC_INTERFACE
+  const handleBookingKeyDown = (field) => (e) => {
+    // Support IME composition: do nothing while composing.
+    if (e.isComposing) return;
+
+    if (e.key !== "Enter") return;
+
+    // Prevent accidental form submit on Enter in Name/Phone (requested).
+    // Also keeps behavior consistent on mobile where Enter may submit.
+    if (field === "name" || field === "phone") {
+      e.preventDefault();
+    }
+
+    if (field === "name") {
+      focusAndFlash(bookingPhoneRef.current);
+      return;
+    }
+
+    if (field === "phone") {
+      focusAndFlash(bookingPincodeRef.current);
+      return;
+    }
+
+    if (field === "pincode") {
+      // For pincode: trigger "Check" if available; otherwise focus Book Now.
+      e.preventDefault();
+
+      if (bookingCheckBtnRef.current && !bookingCheckBtnRef.current.disabled) {
+        bookingCheckBtnRef.current.click();
+        // Keep user in the pincode field after checking (better UX on mobile).
+        focusAndFlash(bookingPincodeRef.current);
+      } else {
+        focusAndFlash(bookingSubmitBtnRef.current);
+      }
+    }
+  };
+
   const [sliderIndex, setSliderIndex] = useState(0);
 
   // Tracking state
@@ -588,12 +651,16 @@ function HomeShell() {
                     <label className="Field">
                       <span className="FieldLabel">Name</span>
                       <input
+                        ref={bookingNameRef}
                         className={`Input ${bookingTouched.name && bookingErrors.name ? "InputError" : ""}`}
                         value={booking.name}
                         onChange={(e) => onBookingChange("name", e.target.value)}
                         onBlur={() => markBookingTouched("name")}
+                        onFocus={(e) => flashFocus(e.currentTarget)}
+                        onKeyDown={handleBookingKeyDown("name")}
                         placeholder="Your name"
                         autoComplete="name"
+                        enterKeyHint="next"
                       />
                       {bookingTouched.name && bookingErrors.name ? <span className="FieldError">{bookingErrors.name}</span> : null}
                     </label>
@@ -601,6 +668,7 @@ function HomeShell() {
                     <label className="Field">
                       <span className="FieldLabel">Phone Number</span>
                       <input
+                        ref={bookingPhoneRef}
                         className={`Input ${bookingTouched.phone && bookingErrors.phone ? "InputError" : ""}`}
                         value={booking.phone}
                         onChange={(e) => onBookingChange("phone", normalizeBookingPhone(e.target.value))}
@@ -613,11 +681,14 @@ function HomeShell() {
                           }
                         }}
                         onBlur={() => markBookingTouched("phone")}
+                        onFocus={(e) => flashFocus(e.currentTarget)}
+                        onKeyDown={handleBookingKeyDown("phone")}
                         placeholder="10-digit phone number"
                         autoComplete="tel"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         maxLength={10}
+                        enterKeyHint="next"
                       />
                       {bookingTouched.phone && bookingErrors.phone ? <span className="FieldError">{bookingErrors.phone}</span> : null}
                     </label>
@@ -627,20 +698,30 @@ function HomeShell() {
                         <label className="Field FieldRowField">
                           <span className="FieldLabel">Pincode</span>
                           <input
+                            ref={bookingPincodeRef}
                             className={`Input ${
                               bookingTouched.pincode && (bookingErrors.pincode || pincodeStatus.valid === false) ? "InputError" : ""
                             }`}
                             value={booking.pincode}
                             onChange={(e) => onBookingChange("pincode", e.target.value)}
                             onBlur={() => markBookingTouched("pincode")}
+                            onFocus={(e) => flashFocus(e.currentTarget)}
+                            onKeyDown={handleBookingKeyDown("pincode")}
                             placeholder="6-digit pincode"
                             inputMode="numeric"
                             autoComplete="postal-code"
                             maxLength={6}
+                            enterKeyHint="go"
                           />
                         </label>
 
-                        <button type="button" className="Button Secondary CheckBtn" onClick={checkPincode}>
+                        <button
+                          ref={bookingCheckBtnRef}
+                          type="button"
+                          className="Button Secondary CheckBtn"
+                          onClick={checkPincode}
+                          aria-label="Check pincode"
+                        >
                           {pincodeStatus.state === "checking" ? "Checking…" : "Check"}
                         </button>
                       </div>
@@ -654,7 +735,13 @@ function HomeShell() {
                   </div>
 
                   <div className="FormFooter">
-                    <button type="submit" className="Button Primary PinkPrimary" disabled={!canBook}>
+                    <button
+                      ref={bookingSubmitBtnRef}
+                      type="submit"
+                      className="Button Primary PinkPrimary"
+                      disabled={!canBook}
+                      onFocus={(e) => flashFocus(e.currentTarget)}
+                    >
                       {bookingStatus.state === "loading" ? "Booking…" : "Book Now"}
                     </button>
 
