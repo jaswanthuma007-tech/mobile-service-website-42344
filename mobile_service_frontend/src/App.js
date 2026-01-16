@@ -52,6 +52,19 @@ function normalizePhone(phone) {
   return p.replace(/\D/g, "");
 }
 
+/**
+ * Booking form requirement: allow only digits and enforce exactly 10 digits.
+ * We keep this separate from normalizePhone() because other parts of the app
+ * (e.g. tracking) may accept more flexible formats.
+ */
+function normalizeBookingPhone(value) {
+  return String(value || "").replace(/\D/g, "").slice(0, 10);
+}
+
+function isValidBookingPhone(value) {
+  return /^[0-9]{10}$/.test(String(value || ""));
+}
+
 function isValidPincode(pincode) {
   return /^[0-9]{6}$/.test(String(pincode || "").trim());
 }
@@ -209,12 +222,12 @@ function HomeShell() {
   const bookingErrors = useMemo(() => {
     const e = {};
     const name = String(booking.name || "").trim();
-    const phone = normalizePhone(booking.phone);
+    const phone = normalizeBookingPhone(booking.phone);
     const pincode = String(booking.pincode || "").trim();
 
     if (!name) e.name = "Name is required.";
     if (!phone) e.phone = "Phone number is required.";
-    if (phone && phone.replace(/\D/g, "").length < 7) e.phone = "Please enter a valid phone number.";
+    if (phone && !isValidBookingPhone(phone)) e.phone = "Phone number must be exactly 10 digits.";
     if (!pincode) e.pincode = "Pincode is required.";
     if (pincode && !isValidPincode(pincode)) e.pincode = "Pincode must be 6 digits.";
     return e;
@@ -272,7 +285,7 @@ function HomeShell() {
     try {
       const payload = {
         name: String(booking.name || "").trim(),
-        phone: normalizePhone(booking.phone),
+        phone: normalizeBookingPhone(booking.phone),
         pincode: String(booking.pincode || "").trim(),
       };
       const resp = await fetchJson("/api/bookings", { method: "POST", body: JSON.stringify(payload) });
@@ -590,11 +603,21 @@ function HomeShell() {
                       <input
                         className={`Input ${bookingTouched.phone && bookingErrors.phone ? "InputError" : ""}`}
                         value={booking.phone}
-                        onChange={(e) => onBookingChange("phone", e.target.value)}
+                        onChange={(e) => onBookingChange("phone", normalizeBookingPhone(e.target.value))}
+                        onPaste={(e) => {
+                          // Block pasting any content that isn't strictly numeric (requirement).
+                          const text = e.clipboardData?.getData("text") ?? "";
+                          if (!/^\d+$/.test(text)) {
+                            e.preventDefault();
+                            setBookingTouched((prev) => ({ ...prev, phone: true }));
+                          }
+                        }}
                         onBlur={() => markBookingTouched("phone")}
-                        placeholder="+1 555 123 4567"
+                        placeholder="10-digit phone number"
                         autoComplete="tel"
-                        inputMode="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={10}
                       />
                       {bookingTouched.phone && bookingErrors.phone ? <span className="FieldError">{bookingErrors.phone}</span> : null}
                     </label>
