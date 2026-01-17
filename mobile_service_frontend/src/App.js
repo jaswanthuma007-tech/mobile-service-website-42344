@@ -111,7 +111,7 @@ function HomeShell() {
   const [booking, setBooking] = useState({ name: "", phone: "", pincode: "" });
   const [bookingTouched, setBookingTouched] = useState({});
   const [bookingStatus, setBookingStatus] = useState({ state: "idle", message: "" }); // idle | checking | loading | success | error
-  const [pincodeStatus, setPincodeStatus] = useState({ state: "idle", valid: null, message: "" }); // idle | checking | done
+  const [pincodeStatus, setPincodeStatus] = useState({ state: "idle", valid: null, message: "", location: null }); // idle | checking | done
 
   // Refs for Enter-key navigation (works for desktop and mobile virtual keyboard "Enter/Next").
   const bookingNameRef = useRef(null);
@@ -306,7 +306,7 @@ function HomeShell() {
   const onBookingChange = (key, value) => {
     setBooking((prev) => ({ ...prev, [key]: value }));
     if (key === "pincode") {
-      setPincodeStatus({ state: "idle", valid: null, message: "" });
+      setPincodeStatus({ state: "idle", valid: null, message: "", location: null });
     }
   };
 
@@ -317,19 +317,34 @@ function HomeShell() {
     setBookingTouched((prev) => ({ ...prev, pincode: true }));
 
     if (!isValidPincode(pin)) {
-      setPincodeStatus({ state: "done", valid: false, message: "Please enter a valid 6-digit pincode." });
+      setPincodeStatus({ state: "done", valid: false, message: "Please enter a valid 6-digit pincode.", location: null });
       return;
     }
 
-    setPincodeStatus({ state: "checking", valid: null, message: "Checking service availability…" });
+    // Loading UI with spinner + disable buttons while checking (requirement).
+    setPincodeStatus({ state: "checking", valid: null, message: "", location: null });
+
     try {
-      const resp = await fetchJson(`/api/pincode/check?pincode=${encodeURIComponent(pin)}`);
-      setPincodeStatus({ state: "done", valid: !!resp?.valid, message: resp?.message || "" });
+      // Use the new backend proxy (still supports /api/pincode/check as alias).
+      const resp = await fetchJson(`/api/check-pincode?pincode=${encodeURIComponent(pin)}`);
+
+      // Best-effort parse location from message; backend may later expose a location object.
+      // We also support resp.location if backend adds it in future.
+      const location = resp?.location || null;
+
+      setPincodeStatus({
+        state: "done",
+        valid: !!resp?.valid,
+        message: resp?.message || (resp?.valid ? "Service available." : "Service not available in this area."),
+        location,
+      });
     } catch (err) {
+      // Never expose raw browser/network errors like "Failed to fetch".
       setPincodeStatus({
         state: "done",
         valid: false,
-        message: err?.message || "Unable to validate pincode right now.",
+        message: "Unable to verify pincode. Please try again.",
+        location: null,
       });
     }
   };
@@ -376,7 +391,7 @@ function HomeShell() {
 
       setBooking({ name: "", phone: "", pincode: "" });
       setBookingTouched({});
-      setPincodeStatus({ state: "idle", valid: null, message: "" });
+      setPincodeStatus({ state: "idle", valid: null, message: "", location: null });
     } catch (err) {
       setBookingStatus({
         state: "error",
@@ -743,8 +758,23 @@ function HomeShell() {
 
                       {bookingTouched.pincode && bookingErrors.pincode ? <span className="FieldError">{bookingErrors.pincode}</span> : null}
 
+                      {pincodeStatus.state === "checking" ? (
+                        <div className="PincodeMsg is-neutral" role="status" aria-live="polite">
+                          <span className="Spinner" aria-hidden="true" /> Checking…
+                        </div>
+                      ) : null}
+
                       {pincodeStatus.state === "done" ? (
-                        <div className={`PincodeMsg ${pincodeStatus.valid ? "is-ok" : "is-bad"}`}>{pincodeStatus.message}</div>
+                        <div className={`PincodeMsg ${pincodeStatus.valid ? "is-ok" : "is-bad"}`} role="status" aria-live="polite">
+                          <div>{pincodeStatus.message}</div>
+                          {pincodeStatus.valid && pincodeStatus.location ? (
+                            <div className="PincodeLoc">
+                              {pincodeStatus.location.city ? <span>{pincodeStatus.location.city}</span> : null}
+                              {pincodeStatus.location.district ? <span>{pincodeStatus.location.district}</span> : null}
+                              {pincodeStatus.location.state ? <span>{pincodeStatus.location.state}</span> : null}
+                            </div>
+                          ) : null}
+                        </div>
                       ) : null}
                     </div>
                   </div>
