@@ -382,10 +382,11 @@ function HomeShell() {
             : resp?.message || "Booking received! Our team will contact you shortly.",
       });
 
-      // Redirect into the new device selection flow (step 1: brand).
+      // Redirect into the required brand selection route using query param booking_id.
+      // Backend may reuse an existing Pending booking and still returns a valid id.
       if (bookingId != null) {
         window.setTimeout(() => {
-          navigate(`/booking/${bookingId}/brand`);
+          navigate(`/select-brand?booking_id=${encodeURIComponent(String(bookingId))}`);
         }, 700);
       }
 
@@ -1278,10 +1279,28 @@ function AdminBookingRow({ booking, onUpdate }) {
   );
 }
 
+function SelectBrandRedirect() {
+  const navigate = useNavigate();
+  const { search } = window.location;
+  const params = new URLSearchParams(search || "");
+  const bookingId = params.get("booking_id");
+
+  useEffect(() => {
+    if (bookingId) {
+      navigate(`/booking/${encodeURIComponent(String(bookingId))}/brand`, { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
+  }, [bookingId, navigate]);
+
+  return null;
+}
+
 function App() {
   return (
     <Routes>
       <Route path="/" element={<HomeShell />} />
+      <Route path="/select-brand" element={<SelectBrandRedirect />} />
       <Route path="/booking/:bookingId/:step" element={<BookingFlow />} />
       <Route path="*" element={<HomeShell />} />
     </Routes>

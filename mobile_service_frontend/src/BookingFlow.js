@@ -61,7 +61,8 @@ export default function BookingFlow() {
    * - confirm: confirmation page
    */
   const { step, bookingId: bookingIdParam } = useParams();
-  const bookingId = Number(bookingIdParam);
+  // Supabase booking IDs are UUID strings. Keep as string (do NOT coerce to Number).
+  const bookingId = String(bookingIdParam || "").trim();
   const navigate = useNavigate();
   const query = useQuery();
 
@@ -92,7 +93,7 @@ export default function BookingFlow() {
     let cancelled = false;
 
     async function loadBooking() {
-      if (!bookingId || Number.isNaN(bookingId)) {
+      if (!bookingId) {
         setLoadingBooking(false);
         setUiState({ state: "error", message: "Invalid booking id." });
         return;
@@ -100,7 +101,7 @@ export default function BookingFlow() {
 
       setLoadingBooking(true);
       try {
-        const resp = await fetchJson(`/api/track?booking_id=${encodeURIComponent(String(bookingId))}`);
+        const resp = await fetchJson(`/api/track?booking_id=${encodeURIComponent(bookingId)}`);
         if (cancelled) return;
         if (!resp?.found || !resp?.booking) {
           setUiState({ state: "error", message: resp?.message || "Booking not found." });
@@ -201,7 +202,7 @@ export default function BookingFlow() {
     if (Array.isArray(services) && services.length > 0) p.set("services", services.join(","));
 
     const qs = p.toString();
-    navigate(`/booking/${bookingId}/${nextStep}${qs ? `?${qs}` : ""}`);
+    navigate(`/booking/${encodeURIComponent(bookingId)}/${nextStep}${qs ? `?${qs}` : ""}`);
   };
 
   const saveSelection = async (payload) => {
