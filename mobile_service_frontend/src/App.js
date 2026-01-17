@@ -111,12 +111,7 @@ function HomeShell() {
   const [booking, setBooking] = useState({ name: "", phone: "", pincode: "" });
   const [bookingTouched, setBookingTouched] = useState({});
   const [bookingStatus, setBookingStatus] = useState({ state: "idle", message: "" }); // idle | checking | loading | success | error
-  const [pincodeStatus, setPincodeStatus] = useState({ state: "idle", valid: null, message: "", location: null }); // idle | checking | done
-
-  // Debounce/anti-double-submit for the booking form:
-  // Disable "Book Now" immediately on the first click/submit, prevent rapid re-clicks,
-  // and re-enable only if the submission fails (per requirement).
-  const [isBookingSubmitLocked, setIsBookingSubmitLocked] = useState(false);
+  const [pincodeStatus, setPincodeStatus] = useState({ state: "idle", valid: null, message: "" }); // idle | checking | done
 
   // Refs for Enter-key navigation (works for desktop and mobile virtual keyboard "Enter/Next").
   const bookingNameRef = useRef(null);
@@ -306,13 +301,12 @@ function HomeShell() {
   }, [booking]);
 
   const isPincodeValidNow = isValidPincode(booking.pincode);
-  const canBook =
-    Object.keys(bookingErrors).length === 0 && bookingStatus.state !== "loading" && isPincodeValidNow && !isBookingSubmitLocked;
+  const canBook = Object.keys(bookingErrors).length === 0 && bookingStatus.state !== "loading" && isPincodeValidNow;
 
   const onBookingChange = (key, value) => {
     setBooking((prev) => ({ ...prev, [key]: value }));
     if (key === "pincode") {
-      setPincodeStatus({ state: "idle", valid: null, message: "", location: null });
+      setPincodeStatus({ state: "idle", valid: null, message: "" });
     }
   };
 
@@ -323,61 +317,35 @@ function HomeShell() {
     setBookingTouched((prev) => ({ ...prev, pincode: true }));
 
     if (!isValidPincode(pin)) {
-      setPincodeStatus({ state: "done", valid: false, message: "Please enter a valid 6-digit pincode.", location: null });
+      setPincodeStatus({ state: "done", valid: false, message: "Please enter a valid 6-digit pincode." });
       return;
     }
 
-    // Loading UI with spinner + disable buttons while checking (requirement).
-    setPincodeStatus({ state: "checking", valid: null, message: "", location: null });
-
+    setPincodeStatus({ state: "checking", valid: null, message: "Checking service availability…" });
     try {
-      // Use the new backend proxy (still supports /api/pincode/check as alias).
-      const resp = await fetchJson(`/api/check-pincode?pincode=${encodeURIComponent(pin)}`);
-
-      // Best-effort parse location from message; backend may later expose a location object.
-      // We also support resp.location if backend adds it in future.
-      const location = resp?.location || null;
-
-      setPincodeStatus({
-        state: "done",
-        valid: !!resp?.valid,
-        message: resp?.message || (resp?.valid ? "Service available." : "Service not available in this area."),
-        location,
-      });
+      const resp = await fetchJson(`/api/pincode/check?pincode=${encodeURIComponent(pin)}`);
+      setPincodeStatus({ state: "done", valid: !!resp?.valid, message: resp?.message || "" });
     } catch (err) {
-      // Never expose raw browser/network errors like "Failed to fetch".
       setPincodeStatus({
         state: "done",
         valid: false,
-        message: "Unable to verify pincode. Please try again.",
-        location: null,
+        message: err?.message || "Unable to validate pincode right now.",
       });
     }
   };
 
   const submitBooking = async (e) => {
     e.preventDefault();
-
-    // Debounce: if already submitted and still pending completion, ignore subsequent submits.
-    if (isBookingSubmitLocked) return;
-
-    // Lock immediately so the button disables right away on the first click.
-    setIsBookingSubmitLocked(true);
-
     setBookingTouched({ name: true, phone: true, pincode: true });
 
     if (Object.keys(bookingErrors).length > 0) {
       setBookingStatus({ state: "error", message: "Please fix the highlighted fields." });
-      // Re-enable on validation error (submission did not proceed).
-      setIsBookingSubmitLocked(false);
       return;
     }
 
     // If we already checked and it failed, don't submit.
     if (pincodeStatus.state === "done" && pincodeStatus.valid === false) {
       setBookingStatus({ state: "error", message: "Please enter a serviceable pincode." });
-      // Re-enable on submission error (blocked by pincode check).
-      setIsBookingSubmitLocked(false);
       return;
     }
 
@@ -399,25 +367,21 @@ function HomeShell() {
             : resp?.message || "Booking received! Our team will contact you shortly.",
       });
 
-      // Note: per requirement, we do NOT re-enable the button on success;
-      // user is redirected into the booking flow.
-      // Backend may reuse an existing Pending booking and still returns a valid id.
+      // Redirect into the new device selection flow (step 1: brand).
       if (bookingId != null) {
         window.setTimeout(() => {
-          navigate(`/select-brand?booking_id=${encodeURIComponent(String(bookingId))}`);
+          navigate(`/booking/${bookingId}/brand`);
         }, 700);
       }
 
       setBooking({ name: "", phone: "", pincode: "" });
       setBookingTouched({});
-      setPincodeStatus({ state: "idle", valid: null, message: "", location: null });
+      setPincodeStatus({ state: "idle", valid: null, message: "" });
     } catch (err) {
       setBookingStatus({
         state: "error",
         message: err?.message || "Something went wrong. Please try again in a moment.",
       });
-      // Re-enable only on submission error (network/server failure).
-      setIsBookingSubmitLocked(false);
     }
   };
 
@@ -779,23 +743,8 @@ function HomeShell() {
 
                       {bookingTouched.pincode && bookingErrors.pincode ? <span className="FieldError">{bookingErrors.pincode}</span> : null}
 
-                      {pincodeStatus.state === "checking" ? (
-                        <div className="PincodeMsg is-neutral" role="status" aria-live="polite">
-                          <span className="Spinner" aria-hidden="true" /> Checking…
-                        </div>
-                      ) : null}
-
                       {pincodeStatus.state === "done" ? (
-                        <div className={`PincodeMsg ${pincodeStatus.valid ? "is-ok" : "is-bad"}`} role="status" aria-live="polite">
-                          <div>{pincodeStatus.message}</div>
-                          {pincodeStatus.valid && pincodeStatus.location ? (
-                            <div className="PincodeLoc">
-                              {pincodeStatus.location.city ? <span>{pincodeStatus.location.city}</span> : null}
-                              {pincodeStatus.location.district ? <span>{pincodeStatus.location.district}</span> : null}
-                              {pincodeStatus.location.state ? <span>{pincodeStatus.location.state}</span> : null}
-                            </div>
-                          ) : null}
-                        </div>
+                        <div className={`PincodeMsg ${pincodeStatus.valid ? "is-ok" : "is-bad"}`}>{pincodeStatus.message}</div>
                       ) : null}
                     </div>
                   </div>
@@ -1299,28 +1248,10 @@ function AdminBookingRow({ booking, onUpdate }) {
   );
 }
 
-function SelectBrandRedirect() {
-  const navigate = useNavigate();
-  const { search } = window.location;
-  const params = new URLSearchParams(search || "");
-  const bookingId = params.get("booking_id");
-
-  useEffect(() => {
-    if (bookingId) {
-      navigate(`/booking/${encodeURIComponent(String(bookingId))}/brand`, { replace: true });
-    } else {
-      navigate("/", { replace: true });
-    }
-  }, [bookingId, navigate]);
-
-  return null;
-}
-
 function App() {
   return (
     <Routes>
       <Route path="/" element={<HomeShell />} />
-      <Route path="/select-brand" element={<SelectBrandRedirect />} />
       <Route path="/booking/:bookingId/:step" element={<BookingFlow />} />
       <Route path="*" element={<HomeShell />} />
     </Routes>

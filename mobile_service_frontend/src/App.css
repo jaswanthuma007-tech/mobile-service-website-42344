@@ -829,9 +829,6 @@ code {
   border-radius: 14px;
   border: 1px solid rgba(11, 11, 16, 0.10);
   background: rgba(255, 255, 255, 0.80);
-  display: flex;
-  gap: 10px;
-  align-items: center;
 }
 
 .PincodeMsg.is-ok {
@@ -844,43 +841,6 @@ code {
   border-color: rgba(239, 68, 68, 0.34);
   background: rgba(239, 68, 68, 0.08);
   color: rgba(11, 11, 16, 0.88);
-}
-
-.PincodeMsg.is-neutral {
-  border-color: rgba(37, 99, 235, 0.28);
-  background: rgba(37, 99, 235, 0.08);
-  color: rgba(11, 11, 16, 0.88);
-}
-
-.Spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  border: 2px solid rgba(11, 11, 16, 0.20);
-  border-top-color: rgba(37, 99, 235, 0.95);
-  animation: spin 0.9s linear infinite;
-  flex: 0 0 auto;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.PincodeLoc {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  opacity: 0.95;
-}
-
-.PincodeLoc > span {
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(11, 11, 16, 0.12);
-  background: rgba(255, 255, 255, 0.66);
 }
 
 .FormFooter {
