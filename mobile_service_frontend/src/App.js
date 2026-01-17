@@ -113,6 +113,11 @@ function HomeShell() {
   const [bookingStatus, setBookingStatus] = useState({ state: "idle", message: "" }); // idle | checking | loading | success | error
   const [pincodeStatus, setPincodeStatus] = useState({ state: "idle", valid: null, message: "", location: null }); // idle | checking | done
 
+  // Debounce/anti-double-submit for the booking form:
+  // Disable "Book Now" immediately on the first click/submit, prevent rapid re-clicks,
+  // and re-enable only if the submission fails (per requirement).
+  const [isBookingSubmitLocked, setIsBookingSubmitLocked] = useState(false);
+
   // Refs for Enter-key navigation (works for desktop and mobile virtual keyboard "Enter/Next").
   const bookingNameRef = useRef(null);
   const bookingPhoneRef = useRef(null);
@@ -301,7 +306,8 @@ function HomeShell() {
   }, [booking]);
 
   const isPincodeValidNow = isValidPincode(booking.pincode);
-  const canBook = Object.keys(bookingErrors).length === 0 && bookingStatus.state !== "loading" && isPincodeValidNow;
+  const canBook =
+    Object.keys(bookingErrors).length === 0 && bookingStatus.state !== "loading" && isPincodeValidNow && !isBookingSubmitLocked;
 
   const onBookingChange = (key, value) => {
     setBooking((prev) => ({ ...prev, [key]: value }));
@@ -351,16 +357,27 @@ function HomeShell() {
 
   const submitBooking = async (e) => {
     e.preventDefault();
+
+    // Debounce: if already submitted and still pending completion, ignore subsequent submits.
+    if (isBookingSubmitLocked) return;
+
+    // Lock immediately so the button disables right away on the first click.
+    setIsBookingSubmitLocked(true);
+
     setBookingTouched({ name: true, phone: true, pincode: true });
 
     if (Object.keys(bookingErrors).length > 0) {
       setBookingStatus({ state: "error", message: "Please fix the highlighted fields." });
+      // Re-enable on validation error (submission did not proceed).
+      setIsBookingSubmitLocked(false);
       return;
     }
 
     // If we already checked and it failed, don't submit.
     if (pincodeStatus.state === "done" && pincodeStatus.valid === false) {
       setBookingStatus({ state: "error", message: "Please enter a serviceable pincode." });
+      // Re-enable on submission error (blocked by pincode check).
+      setIsBookingSubmitLocked(false);
       return;
     }
 
@@ -382,7 +399,8 @@ function HomeShell() {
             : resp?.message || "Booking received! Our team will contact you shortly.",
       });
 
-      // Redirect into the required brand selection route using query param booking_id.
+      // Note: per requirement, we do NOT re-enable the button on success;
+      // user is redirected into the booking flow.
       // Backend may reuse an existing Pending booking and still returns a valid id.
       if (bookingId != null) {
         window.setTimeout(() => {
@@ -398,6 +416,8 @@ function HomeShell() {
         state: "error",
         message: err?.message || "Something went wrong. Please try again in a moment.",
       });
+      // Re-enable only on submission error (network/server failure).
+      setIsBookingSubmitLocked(false);
     }
   };
 
