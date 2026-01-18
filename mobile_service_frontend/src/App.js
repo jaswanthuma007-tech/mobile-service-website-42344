@@ -73,6 +73,21 @@ function isValidPincode(pincode) {
   return /^[0-9]{6}$/.test(String(pincode || "").trim());
 }
 
+/**
+ * Feature flag: when true, pincode serviceability is checked locally (offline),
+ * and no backend request is made.
+ */
+const USE_LOCAL_PINCODE_CHECK = true;
+
+/** In-memory allowlist of serviceable pincodes (frontend-only). */
+const SERVICEABLE_PINCODES_ALLOWLIST = new Set(["632507", "632508", "632509", "632510", "632511"]);
+
+// PUBLIC_INTERFACE
+function isServiceablePincodeLocal(pincode) {
+  /** Returns true if the pincode exists in the local allowlist. */
+  return SERVICEABLE_PINCODES_ALLOWLIST.has(String(pincode || "").trim());
+}
+
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
@@ -321,6 +336,23 @@ function HomeShell() {
       return;
     }
 
+    // Local/offline check (default): ensures we never hit backend/CORS issues.
+    if (USE_LOCAL_PINCODE_CHECK) {
+      setPincodeStatus({ state: "checking", valid: null, message: "Checking service availability…" });
+
+      // Keep the existing smooth "loading" state without network requests.
+      await new Promise((r) => window.setTimeout(r, 250));
+
+      const serviceable = isServiceablePincodeLocal(pin);
+      setPincodeStatus({
+        state: "done",
+        valid: serviceable,
+        message: serviceable ? "Service Available" : "Not Serviceable",
+      });
+      return;
+    }
+
+    // Backend path (currently guarded off via USE_LOCAL_PINCODE_CHECK):
     // Use an AbortController so we can show a friendly timeout message (and never surface "Failed to fetch").
     const controller = new AbortController();
     const timeoutMs = 8000;
