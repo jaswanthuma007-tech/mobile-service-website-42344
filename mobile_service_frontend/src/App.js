@@ -330,7 +330,7 @@ function HomeShell() {
 
     try {
       // IMPORTANT:
-      // Use RELATIVE `/api/...` so CRA dev proxy (`src/setupProxy.js`) handles it and avoids CORS.
+      // Always use RELATIVE `/api/...` so CRA dev proxy (`src/setupProxy.js`) handles it and avoids CORS.
       // GET /api/serviceable_pincodes?pin=<6-digit> -> { pincode, serviceable }
       const res = await fetch(`/api/serviceable_pincodes?pin=${encodeURIComponent(pin)}`, {
         method: "GET",
@@ -338,7 +338,9 @@ function HomeShell() {
         signal: controller.signal,
       });
 
-      // Parse JSON safely (even for non-2xx); backend is expected to return JSON, but we guard anyway.
+      // Safe JSON parsing:
+      // - The backend should return JSON even on errors, but we must not crash if it doesn't.
+      // - We parse first, then rely on res.ok to decide success vs error.
       let data = null;
       try {
         data = await res.json();
@@ -347,24 +349,32 @@ function HomeShell() {
       }
 
       if (!res.ok) {
-        const retryMsg = "Please try again.";
+        // Friendly error mapping:
+        // - If backend provides {message}, show it (already user-facing).
+        // - Otherwise show a generic message with retry guidance.
+        const providedMessage =
+          data && typeof data === "object" && typeof data.message === "string" ? data.message.trim() : "";
+        const isServerError = res.status >= 500;
         const friendly =
-          (data && typeof data === "object" && data.message && String(data.message)) ||
-          (res.status >= 500
-            ? `Service is temporarily unavailable (server error). ${retryMsg}`
-            : `We couldn’t check this pincode right now. ${retryMsg}`);
+          providedMessage ||
+          (isServerError
+            ? "Unable to check service availability right now. Please try again later."
+            : "We couldn’t verify this pincode. Please double-check and try again.");
+
         setPincodeStatus({ state: "done", valid: false, message: friendly });
         return;
       }
 
+      // Success response should be stable JSON: { pincode, serviceable }
       const serviceable = !!(data && typeof data === "object" && data.serviceable);
       setPincodeStatus({
         state: "done",
         valid: serviceable,
+        // Requirement: show exactly these for UX consistency.
         message: serviceable ? "Service Available" : "Not Serviceable",
       });
     } catch (err) {
-      // Normalize network errors (including AbortError, CORS, DNS, proxy 502) to user-friendly messages.
+      // Normalize network errors (including AbortError, DNS, proxy 502) to user-friendly messages.
       const isAbort = err?.name === "AbortError";
       const friendly = isAbort
         ? "Network is taking too long. Please check your connection and try again."
