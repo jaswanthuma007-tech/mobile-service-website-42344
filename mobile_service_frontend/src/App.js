@@ -329,9 +329,10 @@ function HomeShell() {
     setPincodeStatus({ state: "checking", valid: null, message: "Checking service availability…" });
 
     try {
-      // Hardened backend endpoint:
+      // IMPORTANT:
+      // Use RELATIVE `/api/...` so CRA dev proxy (`src/setupProxy.js`) handles it and avoids CORS.
       // GET /api/serviceable_pincodes?pin=<6-digit> -> { pincode, serviceable }
-      const res = await fetch(`${BACKEND_BASE_URL}/api/serviceable_pincodes?pin=${encodeURIComponent(pin)}`, {
+      const res = await fetch(`/api/serviceable_pincodes?pin=${encodeURIComponent(pin)}`, {
         method: "GET",
         headers: { Accept: "application/json" },
         signal: controller.signal,
@@ -346,10 +347,12 @@ function HomeShell() {
       }
 
       if (!res.ok) {
-        // Friendly error message; do not display raw fetch/browser text.
+        const retryMsg = "Please try again.";
         const friendly =
           (data && typeof data === "object" && data.message && String(data.message)) ||
-          "We couldn’t check this pincode right now. Please try again in a moment.";
+          (res.status >= 500
+            ? `Service is temporarily unavailable (server error). ${retryMsg}`
+            : `We couldn’t check this pincode right now. ${retryMsg}`);
         setPincodeStatus({ state: "done", valid: false, message: friendly });
         return;
       }
@@ -361,11 +364,11 @@ function HomeShell() {
         message: serviceable ? "Service Available" : "Not Serviceable",
       });
     } catch (err) {
-      // Normalize network errors (including AbortError) to user-friendly messages.
+      // Normalize network errors (including AbortError, CORS, DNS, proxy 502) to user-friendly messages.
       const isAbort = err?.name === "AbortError";
       const friendly = isAbort
         ? "Network is taking too long. Please check your connection and try again."
-        : "Unable to check service availability right now. Please try again.";
+        : "Network error while checking pincode. Please check your connection and retry.";
       setPincodeStatus({ state: "done", valid: false, message: friendly });
     } finally {
       window.clearTimeout(timeoutId);
