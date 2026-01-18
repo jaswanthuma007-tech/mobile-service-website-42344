@@ -321,16 +321,54 @@ function HomeShell() {
       return;
     }
 
+    // Use an AbortController so we can show a friendly timeout message (and never surface "Failed to fetch").
+    const controller = new AbortController();
+    const timeoutMs = 8000;
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
     setPincodeStatus({ state: "checking", valid: null, message: "Checking service availability…" });
+
     try {
-      const resp = await fetchJson(`/api/pincode/check?pincode=${encodeURIComponent(pin)}`);
-      setPincodeStatus({ state: "done", valid: !!resp?.valid, message: resp?.message || "" });
-    } catch (err) {
+      // Hardened backend endpoint:
+      // GET /api/serviceable_pincodes?pin=<6-digit> -> { pincode, serviceable }
+      const res = await fetch(`${BACKEND_BASE_URL}/api/serviceable_pincodes?pin=${encodeURIComponent(pin)}`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+
+      // Parse JSON safely (even for non-2xx); backend is expected to return JSON, but we guard anyway.
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok) {
+        // Friendly error message; do not display raw fetch/browser text.
+        const friendly =
+          (data && typeof data === "object" && data.message && String(data.message)) ||
+          "We couldn’t check this pincode right now. Please try again in a moment.";
+        setPincodeStatus({ state: "done", valid: false, message: friendly });
+        return;
+      }
+
+      const serviceable = !!(data && typeof data === "object" && data.serviceable);
       setPincodeStatus({
         state: "done",
-        valid: false,
-        message: err?.message || "Unable to validate pincode right now.",
+        valid: serviceable,
+        message: serviceable ? "Service Available" : "Not Serviceable",
       });
+    } catch (err) {
+      // Normalize network errors (including AbortError) to user-friendly messages.
+      const isAbort = err?.name === "AbortError";
+      const friendly = isAbort
+        ? "Network is taking too long. Please check your connection and try again."
+        : "Unable to check service availability right now. Please try again.";
+      setPincodeStatus({ state: "done", valid: false, message: friendly });
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   };
 
