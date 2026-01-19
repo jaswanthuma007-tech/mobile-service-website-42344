@@ -4,6 +4,135 @@ import BookingFlow from "./BookingFlow";
 import "./App.css";
 
 /**
+ * Build a Google Maps "search/center" embed URL.
+ * We use an iframe embed to avoid adding map SDK dependencies while still allowing
+ * dynamic centering and marker placement via URL parameters.
+ */
+function buildGoogleMapsEmbedSrc({ q, lat, lng, z = 14 }) {
+  // Prefer lat/lng when available (user location), otherwise fallback to q.
+  const zoom = Number.isFinite(Number(z)) ? Number(z) : 14;
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    // Center at lat/lng and add a marker at the same coordinate.
+    // Note: this is a public embed; no API key required.
+    return `https://www.google.com/maps?q=${lat},${lng}&z=${zoom}&output=embed`;
+  }
+
+  const query = String(q || "").trim() || "New York";
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=${zoom}&output=embed`;
+}
+
+/**
+ * Get current position as a Promise, with robust timeout/error handling.
+ * We keep this helper local to avoid introducing new dependencies.
+ */
+function getCurrentPositionPromise(options) {
+  return new Promise((resolve, reject) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      reject(new Error("Geolocation is not supported by your browser."));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
+}
+
+/**
+ * A small embedded-map component with a "Locate Me" overlay button.
+ * Uses browser geolocation to center the map and show a marker at the user's location.
+ */
+function StoreLocatorMap() {
+  const [mapCenter, setMapCenter] = useState({ lat: null, lng: null });
+  const [ui, setUi] = useState({ state: "idle", message: "" }); // idle | locating | error | done
+
+  // Default map location (demo): New York
+  const defaultSrc = useMemo(() => buildGoogleMapsEmbedSrc({ q: "New York", z: 12 }), []);
+  const mapSrc = useMemo(() => {
+    if (Number.isFinite(mapCenter.lat) && Number.isFinite(mapCenter.lng)) {
+      return buildGoogleMapsEmbedSrc({ lat: mapCenter.lat, lng: mapCenter.lng, z: 15 });
+    }
+    return defaultSrc;
+  }, [defaultSrc, mapCenter.lat, mapCenter.lng]);
+
+  const locateMe = async () => {
+    // Clear previous errors and show busy state.
+    setUi({ state: "locating", message: "Requesting your location…" });
+
+    // If Permissions API exists, we can preflight to provide better messaging.
+    try {
+      if (navigator?.permissions?.query) {
+        const status = await navigator.permissions.query({ name: "geolocation" });
+        if (status.state === "denied") {
+          setUi({
+            state: "error",
+            message:
+              "Location permission is blocked. Please enable location access for this site in your browser settings, then try again.",
+          });
+          return;
+        }
+      }
+    } catch {
+      // Permissions API not available or query failed; proceed to getCurrentPosition().
+    }
+
+    try {
+      const pos = await getCurrentPositionPromise({
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 15_000,
+      });
+
+      const lat = pos?.coords?.latitude;
+      const lng = pos?.coords?.longitude;
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        setUi({ state: "error", message: "Unable to read your location coordinates. Please try again." });
+        return;
+      }
+
+      setMapCenter({ lat, lng });
+      setUi({ state: "done", message: "Centered on your current location." });
+    } catch (err) {
+      // Normalize common geolocation errors.
+      const code = err?.code;
+      const message =
+        code === 1
+          ? "Location permission was denied. Please allow location access and try again."
+          : code === 2
+            ? "Location unavailable. Please check GPS/network and try again."
+            : code === 3
+              ? "Timed out while retrieving location. Please try again."
+              : err?.message || "Unable to retrieve your location.";
+
+      setUi({ state: "error", message });
+    }
+  };
+
+  return (
+    <div className="MapWrap MapWrapWithControls" aria-label="Map">
+      <div className="MapControls">
+        <button type="button" className="MapLocateBtn" onClick={locateMe} disabled={ui.state === "locating"}>
+          {ui.state === "locating" ? "Locating…" : "Locate Me"}
+        </button>
+        <div
+          className={`MapHint ${ui.state === "error" ? "is-error" : ui.state === "done" ? "is-done" : ""}`}
+          role={ui.state === "error" ? "alert" : "status"}
+          aria-live="polite"
+        >
+          {ui.message}
+        </div>
+      </div>
+
+      <iframe
+        title="Store locator map"
+        src={mapSrc}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    </div>
+  );
+}
+
+/**
  * Backend base URL.
  * - In dev, CRA will use `src/setupProxy.js` to proxy `/api/*` to the backend.
  * - In environments without proxying, set REACT_APP_BACKEND_URL to e.g. http://localhost:3001
@@ -930,14 +1059,7 @@ function HomeShell() {
 
               <div className="StoreMap Card Lift">
                 <div className="CardTitle">Map</div>
-                <div className="MapWrap" aria-label="Map">
-                  <iframe
-                    title="Store locator map"
-                    src="https://www.google.com/maps?q=New%20York&output=embed"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                </div>
+                <StoreLocatorMap />
               </div>
             </div>
           </div>

@@ -1488,6 +1488,90 @@ code {
   display: block;
 }
 
+/* Store Locator: Map controls overlay */
+.MapWrapWithControls {
+  position: relative;
+}
+
+.MapControls {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  z-index: 2;
+  pointer-events: none; /* let user pan/zoom iframe while keeping controls clickable */
+}
+
+.MapLocateBtn {
+  pointer-events: auto;
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(11, 11, 16, 0.92);
+  font-weight: 1000;
+  padding: 10px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  white-space: nowrap;
+}
+
+.MapLocateBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.10);
+  border-color: rgba(37, 99, 235, 0.38);
+  box-shadow: 0 18px 30px rgba(37, 99, 235, 0.16);
+}
+
+.MapLocateBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.MapHint {
+  pointer-events: none;
+  flex: 1 1 auto;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 11, 16, 0.10);
+  background: rgba(255, 255, 255, 0.88);
+  color: rgba(11, 11, 16, 0.74);
+  font-weight: 900;
+  font-size: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.MapHint.is-error {
+  border-color: rgba(239, 68, 68, 0.34);
+  background: rgba(239, 68, 68, 0.08);
+  color: rgba(11, 11, 16, 0.86);
+}
+
+.MapHint.is-done {
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.10);
+  color: rgba(11, 11, 16, 0.86);
+}
+
+@media (max-width: 520px) {
+  .MapControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .MapHint {
+    min-height: 0;
+  }
+}
+
 /* Contact form */
 .ContactGrid2 {
   display: grid;
