@@ -359,6 +359,8 @@ function HomeShell() {
       const resp = await fetchJson("/api/bookings", { method: "POST", body: JSON.stringify(payload) });
 
       const bookingId = resp?.id;
+      const nextUrl = resp?.next_step?.url;
+
       setBookingStatus({
         state: "success",
         message:
@@ -368,9 +370,14 @@ function HomeShell() {
       });
 
       // Redirect into the new device selection flow (step 1: brand).
+      // Prefer server-provided `next_step.url` to keep client/server in sync.
       if (bookingId != null) {
         window.setTimeout(() => {
-          navigate(`/booking/${bookingId}/brand`);
+          if (typeof nextUrl === "string" && nextUrl.trim()) {
+            navigate(nextUrl);
+          } else {
+            navigate(`/booking/${bookingId}/brand`);
+          }
         }, 700);
       }
 
