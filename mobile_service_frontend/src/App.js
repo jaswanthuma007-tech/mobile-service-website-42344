@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import BookingFlow from "./BookingFlow";
+import TopInfoBar from "./components/TopInfoBar";
 import "./App.css";
 
 /**
@@ -645,43 +646,18 @@ function HomeShell() {
         Call
       </a>
 
-      {/* TOP HEADER (dark) */}
-      <div className="TopHeader" role="note" aria-label="Contact quick info">
-        <div className="Container TopHeader-inner">
-          <div className="TopHeader-left">
-            <a className="TopHeader-link" href="tel:+15551234567">
-              <span className="TopHeader-ico" aria-hidden="true">
-                ☎
-              </span>
-              +1 (555) 123-4567
-            </a>
-            <a className="TopHeader-link" href="mailto:support@example.com">
-              <span className="TopHeader-ico" aria-hidden="true">
-                ✉
-              </span>
-              support@example.com
-            </a>
-            <div className="TopHeader-item">
-              <span className="TopHeader-ico" aria-hidden="true">
-                ⏱
-              </span>
-              Mon–Sat 9am–7pm
-            </div>
-          </div>
-
-          <div className="TopHeader-right" aria-label="Social links">
-            <button type="button" className="TopHeader-social" aria-label="Instagram">
-              IG
-            </button>
-            <button type="button" className="TopHeader-social" aria-label="Facebook">
-              FB
-            </button>
-            <button type="button" className="TopHeader-social" aria-label="YouTube">
-              YT
-            </button>
-          </div>
-        </div>
-      </div>
+      <TopInfoBar
+        phone="+1 (555) 123-4567"
+        phoneHref="tel:+15551234567"
+        email="support@example.com"
+        emailHref="mailto:support@example.com"
+        hours="Mon–Sat 9am–7pm"
+        social={{
+          instagram: "https://instagram.com",
+          facebook: "https://facebook.com",
+          youtube: "https://youtube.com",
+        }}
+      />
 
       {/* NAVBAR */}
       <header className="Header">
